@@ -1,17 +1,22 @@
 import os
 from logging import config as logging_config
+from .backend_conf import Settings
 
 from core.logger import LOGGING
 
 logging_config.dictConfig(LOGGING)
 
+configs = Settings()
+
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
 PROJECT_DESCRIPTION = os.getenv('PROJECT_DESCRIPTION', 'Movies description')
 
-REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
+REDIS_HOST = configs.REDIS.API_HOST
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+ELASTIC_HOST = configs.ELASTICSEARCH.API_HOST
+ELASTIC_PORT = configs.ELASTICSEARCH.PORT
+ELASTIC_USERNAME = configs.ELASTICSEARCH.USERNAME
+ELASTIC_PASSWORD = configs.ELASTICSEARCH.PASSWORD
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

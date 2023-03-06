@@ -61,8 +61,10 @@ services:
     image: redis:latest
     volumes:
       - redis_data:/data:rw
-    expose:
-      - "6379"
+    ports:
+      - 6379:6379
+    # expose:
+    #   - "6379"
     depends_on:
       postgresql:
         condition: service_healthy
