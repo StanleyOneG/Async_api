@@ -18,6 +18,7 @@ class Film(BaseModel):
     writers: Union[List[str], str, None]
     directors: Union[List[str], str, None]
 
+
     class Config:
         # Заменяем стандартную работу с json на более быструю
         json_loads = orjson.loads
