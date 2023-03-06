@@ -13,11 +13,10 @@ class Film(BaseModel):
     title: str
     description: str
     imdb_rating: float
-    genre: Union[List[str], str, None]
-    actors: Union[List[str], str, None]
-    writers: Union[List[str], str, None]
-    directors: Union[List[str], str, None]
-
+    # genre: Union[List[str], str, None]
+    # actors: Union[List[str], str, None]
+    # writers: Union[List[str], str, None]
+    # directors: Union[List[str], str, None]
 
     class Config:
         # Заменяем стандартную работу с json на более быструю

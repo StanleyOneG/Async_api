@@ -12,7 +12,7 @@ class Film(BaseModel):
     id: str
     title: str
     description: str
-
+    imdb_rating: float
 
 # Внедряем FilmService с помощью Depends(get_film_service)
 @router.get('/{film_id}', response_model=Film)
