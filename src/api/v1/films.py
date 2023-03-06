@@ -11,6 +11,7 @@ router = APIRouter()
 class Film(BaseModel):
     id: str
     title: str
+    description: str
 
 
 # Внедряем FilmService с помощью Depends(get_film_service)
