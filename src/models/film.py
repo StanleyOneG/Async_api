@@ -11,7 +11,6 @@ def orjson_dumps(v, *, default):
 class Film(BaseModel):
     id: str
     title: str
-
     description: str
     imdb_rating: float
     genre: Union[List[str], str, None]
