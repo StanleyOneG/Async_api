@@ -131,3 +131,7 @@ dmypy.json
 .vscode/
 
 .python-version
+
+*pyproject.toml
+*poetry.lock
+.DS_Store
