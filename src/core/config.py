@@ -9,6 +9,7 @@ logging_config.dictConfig(LOGGING)
 configs = Settings()
 
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
+PROJECT_DESCRIPTION = os.getenv('PROJECT_DESCRIPTION', 'Movies description')
 
 REDIS_HOST = configs.REDIS.API_HOST
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
