@@ -15,6 +15,8 @@ services:
       retries: 5
       start_period: 80s 
     container_name: postgresql
+    # ports:
+    #   - "5432:5432"
 
   sqlite_loader:
     build:
@@ -88,6 +90,23 @@ services:
       redis:
         condition: service_started
     container_name: elastic_loader
+
+  elastic_genres_loader:
+    build:
+      context: ./etl_genres/postgres_to_es
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      sqlite_loader:
+        condition: service_completed_successfully
+      elasticsearch:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    container_name: elastic_genres_loader
 
 volumes:
   postgres_data:
