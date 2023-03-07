@@ -147,7 +147,14 @@ class ExtractorFromPostgres:
                 'There are %d movies need to be updated',
                 len(movies_need_to_update),
             )
-            return movies_need_to_update
+        if genres is not None:
+            for genre in genres:
+                self.redis.sadd('genre_to_update', genre)
+            logger.info(
+                'There are %d genres need to be updated',
+                len(genres),
+            )
+            return movies_need_to_update, genres, persons
 
         logger.info('There are no movies for update')
         return None
@@ -233,3 +240,41 @@ class ExtractorFromPostgres:
                 )
                 film_work_data = dict(pg_cursor.fetchall()[0])
                 yield film_work_data
+
+    @backoff.on_exception(
+        backoff.expo,
+        (
+            OperationalError,
+            InterfaceError,
+            ConnectionDoesNotExist,
+            ConnectionFailure,
+            ConnectionException,
+        ),
+    )
+    def extract_genre_data(self, genres: list) -> Generator:
+        """
+        Extract whole genre information from the PostgreSQL database.
+
+        Args:
+            genres: list of genres ids to extract from the PostgreSQL database.
+
+        Yields:
+            Dictionary mapping genres information.
+        """
+        with self.pg_connection.cursor() as pg_cursor:
+            for genre in genres:
+                pg_cursor.execute(
+                    """
+                    SELECT
+                        genre.id AS genre_id,
+                        genre.name AS genre_name,
+                        genre.description AS genre_description
+                    FROM
+                        genre
+                    WHERE genre.id = '{0}'
+                    """.format(
+                        genre,
+                    ),
+                )
+                genre_data = dict(pg_cursor.fetchall()[0])
+                yield genre_data

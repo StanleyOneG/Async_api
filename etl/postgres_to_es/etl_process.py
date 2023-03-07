@@ -55,17 +55,35 @@ def etl_process(
                     '"%Y-%m-%d %H:%M:%S.%f+00:00"',
                 )
                 logger.info('last_checked %s', last_checked)
-            if extractor.find_tables_updates(last_checked) is not None:
+
+            (
+                movies_need_to_update,
+                genres,
+                persons,
+            ) = extractor.find_tables_updates(last_checked)
+
+            if movies_need_to_update:
                 movies_id = [
                     movie.decode('utf-8')
                     for movie in redis.smembers('need_to_update')
                 ]
-                loader.load_data(
+                loader.load_movies_data(
                     transformer.prepare_for_es(
                         extractor.extract_filmwork_data(movies_id),
                     ),
                 )
                 redis.srem('need_to_update', *movies_id)
+            if len(genres) > 0:
+                genres_id = [
+                    genre.decode('utf-8')
+                    for genre in redis.smembers('genre_to_update')
+                ]
+                loader.load_genres_data(
+                    transformer.prepare_genre_for_es(
+                        extractor.extract_genre_data(genres_id),
+                    )
+                )
+                redis.srem('genres_to_update', *genres_id)
             logger.info('Next check in %d sec', CHECK_FREQUENCY)
             sleep(CHECK_FREQUENCY)
         except Exception as pipeline_error:
@@ -107,16 +125,17 @@ def main() -> NoReturn:
                     settings.ELASTICSEARCH.USERNAME,
                     settings.ELASTICSEARCH.PASSWORD,
                 ),
-            ) as elastic:
+            ) as elastic_conn:
                 extractor = ExtractorFromPostgres(
                     pg_connection=pg_conn,
                     redis=redis_conn,
                 )
                 transformer = Transformer(redis_conn)
                 loader = ElasticLoader(
-                    elastic,
-                    index_info='es_schema.json',
+                    elastic=elastic_conn,
                     redis=redis_conn,
+                    index_movies_info='es_schema.json',
+                    index_genres_info='genre_schema.json',
                     chunk_size=CHUNK_SIZE,
                 )
                 etl_process(

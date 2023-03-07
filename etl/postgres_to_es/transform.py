@@ -26,6 +26,15 @@ class Filmwork:
 
 
 @dataclass
+class Genre:
+    """Class for genre data validation."""
+
+    genre_name: str
+    genre_description: str
+    genre_id: uuid.UUID
+
+
+@dataclass
 class Transformer:
     """Transformer class for movie data to index it in Elasticsearch."""
 
@@ -47,6 +56,20 @@ class Transformer:
         for row in movies_data:
             film = asdict(Filmwork(**row))
             yield film
+
+    def get_transformed_genres(self, genres_data: Generator) -> Generator:
+        """
+        Prepare genres data for convenient transformation.
+
+        Args:
+            genres_data: generator - genre data dictionary.
+
+        Yields:
+            Validated dictionary mapping genres data.
+        """
+        for row in genres_data:
+            genre = asdict(Genre(**row))
+            yield genre
 
     def prepare_for_es(
         self,
@@ -107,4 +130,26 @@ class Transformer:
                 '_index': 'movies',
                 '_id': movie['id'],
                 '_source': movie,
+            }
+
+    def prepare_genre_for_es(self, genres_data: Generator) -> Generator:
+        """
+        Traform genres data for indexing them in Elasticsearch.
+
+        Args:
+            genres_data: generator - validated genre data dict
+
+        Yields:
+            Dictionary mapping genres data for in Elasticsearch.
+        """
+        genre = {}
+        for item in self.get_transformed_genres(genres_data):
+            genre['id'] = item['genre_id']
+            genre['name'] = item['genre_name']
+            genre['description'] = item['genre_description']
+
+            yield {
+                '_index': 'genres',
+                '_id': genre['id'],
+                '_source': genre,
             }

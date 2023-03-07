@@ -5,7 +5,7 @@ ENV \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 
 
-COPY ["requirements.txt", "backend_conf.py", "etl_process.py", "extract.py", "transform.py", "load.py", "es_schema.json", "./"]
+COPY ["requirements.txt", "backend_conf.py", "etl_process.py", "extract.py", "transform.py", "load.py", "es_schema.json", "genre_schema.json", "./"]
 
 RUN \
     mkdir app \
@@ -16,6 +16,7 @@ RUN \
     && mv transform.py /app/transform.py \
     && mv load.py /app/load.py \
     && mv es_schema.json /app/es_schema.json \
+    && mv genre_schema.json /app/genre_schema.json \
     && chown es:es -R /app \
     && python -m pip install --upgrade pip \
     && pip install --upgrade wheel \
