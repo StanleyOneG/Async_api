@@ -34,14 +34,34 @@ class RetrieveDataMixin:
 
         return data
 
-    async def _get_data_from_elastic(self, data_id: str) -> Film | Genre:
+    async def get_genres_list(self, *args, **kwargs):
+        try:
+            result = await self.elastic.search(
+                index="genres", body={"query": {"match_all": {}}}, size=100
+            )
+        except NotFoundError:
+            return None
+        return [
+            self.model(**item['_source']) for item in result['hits']['hits']
+        ]
+
+    async def _get_data_from_elastic(
+        self, data_id: str | None = None, by_list: bool | None = None
+    ) -> Film | Genre | list[Genre]:
+
         try:
             doc = await self.elastic.get(self.elastic_index, data_id)
         except NotFoundError:
             return None
         return self.model(**doc['_source'])
 
-    async def _data_from_cache(self, data_id: str) -> Film | Genre:
+    async def _data_from_cache(
+        self, data_id: str | None = None, by_list_genres: bool | None = None
+    ) -> Film | Genre:
+        if by_list_genres:
+            data = self.redis.get('genres_list')
+            if not data:
+                return None
         data = await self.redis.get(data_id)
         if not data:
             return None
@@ -49,7 +69,15 @@ class RetrieveDataMixin:
         data = self.model.parse_raw(data)
         return data
 
-    async def _put_data_to_cache(self, data: Film | Genre) -> Film | Genre:
+    async def _put_data_to_cache(
+        self,
+        data: Film | Genre | list[Genre | Film],
+        by_list_genre: bool | None,
+    ) -> Film | Genre:
+        if by_list_genre:
+            await self.redis.set(
+                'genres_list', data.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+            )
         await self.redis.set(
             data.id, data.json(), FILM_CACHE_EXPIRE_IN_SECONDS
         )
