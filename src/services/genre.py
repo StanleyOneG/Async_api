@@ -6,7 +6,7 @@ from redis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
-from models.genre_model import GenreModel
+from models.genre import Genre
 from models.models_mixins import RetrieveDataMixin
 from fastapi import Depends
 
@@ -16,7 +16,7 @@ class GenreService(RetrieveDataMixin):
 
     redis: Redis
     elastic: AsyncElasticsearch
-    model: Film | GenreModel
+    model: Film | Genre
     elastic_index: str
 
 
@@ -25,4 +25,4 @@ def get_genre_service(
     redis: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> GenreService:
-    return GenreService(redis, elastic, GenreModel, 'genre')
+    return GenreService(redis, elastic, Genre, 'genres')

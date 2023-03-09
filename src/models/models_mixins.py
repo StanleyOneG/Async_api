@@ -6,7 +6,7 @@ from elasticsearch import NotFoundError
 from pydantic import BaseModel
 
 from models.film import Film
-from models.genre_model import GenreModel
+from models.genre import Genre
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -24,7 +24,7 @@ class OrjsonMixin(BaseModel):
 class RetrieveDataMixin:
     """Mixin class for retrieving data from a databases."""
 
-    async def get_by_id(self, data_id: str) -> Film | GenreModel:
+    async def get_by_id(self, data_id: str) -> Film | Genre:
         data = await self._data_from_cache(data_id)
         if not data:
             data = await self._get_data_from_elastic(data_id)
@@ -34,14 +34,14 @@ class RetrieveDataMixin:
 
         return data
 
-    async def _get_data_from_elastic(self, data_id: str) -> Film | GenreModel:
+    async def _get_data_from_elastic(self, data_id: str) -> Film | Genre:
         try:
             doc = await self.elastic.get(self.elastic_index, data_id)
         except NotFoundError:
             return None
         return self.model(**doc['_source'])
 
-    async def _data_from_cache(self, data_id: str) -> Film | GenreModel:
+    async def _data_from_cache(self, data_id: str) -> Film | Genre:
         data = await self.redis.get(data_id)
         if not data:
             return None
@@ -49,9 +49,7 @@ class RetrieveDataMixin:
         data = self.model.parse_raw(data)
         return data
 
-    async def _put_data_to_cache(
-        self, data: Film | GenreModel
-    ) -> Film | GenreModel:
+    async def _put_data_to_cache(self, data: Film | Genre) -> Film | Genre:
         await self.redis.set(
             data.id, data.json(), FILM_CACHE_EXPIRE_IN_SECONDS
         )
