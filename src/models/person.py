@@ -1,14 +1,14 @@
 import orjson
-from typing import List, Union
-
 from pydantic import BaseModel
+
 
 def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
-class Genre(BaseModel):
-    name: str
+
+class PersonBase(BaseModel):
     uuid: str
+    full_name: str
 
     class Config:
         json_loads = orjson.loads
