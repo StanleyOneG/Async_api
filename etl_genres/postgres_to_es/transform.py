@@ -60,11 +60,11 @@ class Transformer:
         """
         genre = {}
         for data in self.get_transformed_genres(genres_data):
-            genre['id'] = data['id']
+            genre['uuid'] = data['id']
             genre['name'] = data['name']
             genre['description'] = data['description']
             yield {
                 '_index': 'genres',
-                '_id': genre['id'],
+                '_id': genre['uuid'],
                 '_source': genre,
             }

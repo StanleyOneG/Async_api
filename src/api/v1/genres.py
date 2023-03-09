@@ -44,3 +44,5 @@ async def genre_details(
         )
 
     return Genre(uuid=genre.id, name=genre.name)
+
+    return Genre(uuid=genre.uuid, name=genre.name)

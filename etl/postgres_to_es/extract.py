@@ -192,8 +192,8 @@ class ExtractorFromPostgres:
                             json_agg(
                                 DISTINCT jsonb_build_object(
                                     'person_role', person_film_work.role,
-                                    'person_id', person.id,
-                                    'person_name', person.full_name
+                                    'person_uuid', person.id,
+                                    'person_full_name', person.full_name
                                 )
                             ) FILTER (WHERE person.id is not null),
                             '[]'
@@ -201,7 +201,7 @@ class ExtractorFromPostgres:
                         COALESCE (
                             json_agg(
                                 DISTINCT jsonb_build_object(
-                                    'genre_id', genre.id,
+                                    'genre_uuid', genre.id,
                                     'genre_name', genre.name
                                 )
                             ) FILTER (WHERE genre.id is not null),

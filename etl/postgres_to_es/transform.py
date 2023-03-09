@@ -63,41 +63,57 @@ class Transformer:
         """
         movie = {}
         for film in self.get_transformed_movies(movies_data):
-            movie['id'] = film['filmwork_id']
+            movie['uuid'] = film['filmwork_id']
             movie['imdb_rating'] = film['rating']
-            movie['genre'] = [genre['genre_name'] for genre in film['genres']]
+            # movie['genre'] = [genre['genre_name'] for genre in film['genres']]
+            movie['genre'] = [
+                {
+                    key.split('_')[1]: value
+                    for (key, value) in genre.items()
+                    if key in ['genre_uuid', 'genre_name']
+                }
+                for genre in film['genres']
+            ]
             movie['title'] = film['title']
             movie['description'] = film['description']
             movie['director'] = [
-                person['person_name']
+                person['person_full_name']
                 for person in film['persons']
                 if person['person_role'] == 'director'
             ]
-
+            movie['directors'] = [
+                {
+                    key.split('_', 1)[1]: value
+                    for (key, value) in person.items()
+                    if key in ['person_uuid', 'person_full_name']
+                }
+                for person in film['persons']
+                if person['person_role'] == 'director'
+            ]
             movie['actors_names'] = [
-                person['person_name']
+                person['person_full_name']
                 for person in film['persons']
                 if person['person_role'] == 'actor'
             ]
             movie['writers_names'] = [
-                person['person_name']
+                person['person_full_name']
                 for person in film['persons']
                 if person['person_role'] == 'writer'
             ]
             movie['actors'] = [
                 {
-                    key.split('_')[1]: value
+                    key.split('_', 1)[1]: value
                     for (key, value) in person.items()
-                    if key in ['person_id', 'person_name']
+                    if key in ['person_uuid', 'person_full_name']
                 }
                 for person in film['persons']
                 if person['person_role'] == 'actor'
             ]
             movie['writers'] = [
                 {
-                    key.split('_')[1]: value
+                    key.split('_', 1)[1]: value
                     for (key, value) in person.items()
-                    if key in ['person_id', 'person_name']
+                    if key in ['person_uuid', 'person_full_name']
                 }
                 for person in film['persons']
                 if person['person_role'] == 'writer'
@@ -105,6 +121,6 @@ class Transformer:
 
             yield {
                 '_index': 'movies',
-                '_id': movie['id'],
+                '_id': movie['uuid'],
                 '_source': movie,
             }
