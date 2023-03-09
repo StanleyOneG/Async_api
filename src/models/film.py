@@ -5,21 +5,22 @@ from typing import List, Union
 from pydantic import BaseModel
 
 from .genre import Genre
-from .director import Director
+from .person import PersonBase
 
 def orjson_dumps(v, *, default):
     # orjson.dumps возвращает bytes, а pydantic требует unicode, поэтому декодируем
     return orjson.dumps(v, default=default).decode()
 
+
 class Film(BaseModel):
-    id: str
+    uuid: str
     title: str
     description: str
     imdb_rating: float
-    # genre: Union[List[Genre], None]
-    # actors: Union[List[str], None]
-    # writers: Union[List[str], None]
-    directors: Union[List[Director], None]
+    genre: Union[List[Genre], None]
+    actors: Union[List[PersonBase], None]
+    writers: Union[List[PersonBase], None]
+    directors: Union[List[PersonBase], None]
 
     class Config:
         # Заменяем стандартную работу с json на более быструю
