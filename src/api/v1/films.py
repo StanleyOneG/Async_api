@@ -4,10 +4,10 @@ from typing import Union, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from src.services.film import FilmService, get_film_service
+from services.film import FilmService, get_film_service
 
-from src.models.genre import Genre
-from src.models.person import PersonBase
+from models.genre import Genre
+from models.person import PersonBase
 
 router = APIRouter()
 

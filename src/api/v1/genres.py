@@ -4,9 +4,9 @@ from typing import Union, List
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from src.services.genre import GenreService, get_genre_service
+from services.genre import GenreService, get_genre_service
 
-from src.models.genre import Genre
+from models.genre import Genre
 
 router = APIRouter()
 

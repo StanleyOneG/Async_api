@@ -2,7 +2,7 @@ import os
 from logging import config as logging_config
 from .backend_conf import Settings
 
-from src.core.logger import LOGGING
+from core.logger import LOGGING
 
 logging_config.dictConfig(LOGGING)
 
