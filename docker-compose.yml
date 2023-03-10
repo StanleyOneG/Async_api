@@ -108,6 +108,23 @@ services:
         condition: service_started
     container_name: elastic_genres_loader
 
+  elastic_persons_loader:
+    build:
+      context: ./etl_persons/postgres_to_es
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      sqlite_loader:
+        condition: service_completed_successfully
+      elasticsearch:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    container_name: elastic_persons_loader
+
 volumes:
   postgres_data:
   elasticsearch_data:

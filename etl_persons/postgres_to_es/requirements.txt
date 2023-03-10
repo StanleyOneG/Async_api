@@ -1,0 +1,7 @@
+python-dotenv==0.21.1
+psycopg2==2.9.5
+elasticsearch==7.17.9
+pydantic==1.10.5
+redis==4.5.1
+hiredis==2.2.2
+backoff==2.2.1
