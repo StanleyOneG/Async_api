@@ -12,11 +12,14 @@ def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
 
-class Film(BaseModel):
+class FilmBase(BaseModel):
     uuid: str
     title: str
-    description: str
-    imdb_rating: float
+    imdb_rating: float | None
+
+
+class Film(FilmBase):
+    description: str | None
     genre: Union[List[Genre], None]
     actors: Union[List[PersonBase], None]
     writers: Union[List[PersonBase], None]
