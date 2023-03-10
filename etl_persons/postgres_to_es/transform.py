@@ -19,6 +19,7 @@ class Person:
 
     full_name: str
     id: uuid.UUID
+    film_work_ids: list[dict]
 
 
 @dataclass
@@ -61,6 +62,8 @@ class Transformer:
         for data in self.get_transformed_persons(persons_data):
             person['uuid'] = data['id']
             person['full_name'] = data['full_name']
+            person['film_work_ids'] = [fw_id for fw_id in data['film_work_ids'].strip('{}').split(',')]
+
             yield {
                 '_index': 'persons',
                 '_id': person['uuid'],
