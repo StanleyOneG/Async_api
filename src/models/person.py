@@ -1,3 +1,4 @@
+from uuid import UUID
 import orjson
 from pydantic import BaseModel
 
@@ -7,7 +8,7 @@ def orjson_dumps(v, *, default):
 
 
 class PersonBase(BaseModel):
-    uuid: str
+    uuid: UUID
     full_name: str
 
     class Config:

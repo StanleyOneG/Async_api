@@ -1,3 +1,4 @@
+from uuid import UUID
 import orjson
 from typing import List, Union
 
@@ -10,7 +11,7 @@ def orjson_dumps(v, *, default):
 
 class Genre(BaseModel):
     name: str
-    uuid: str
+    uuid: UUID
 
     class Config:
         json_loads = orjson.loads

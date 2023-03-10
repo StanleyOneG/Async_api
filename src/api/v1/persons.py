@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Union, List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ router = APIRouter()
 
 
 class Person(BaseModel):
-    uuid: str
+    uuid: UUID
     full_name: str
     role: str | None
     film_ids: list[str] | None
@@ -19,7 +20,7 @@ class Person(BaseModel):
 
 @router.get('/{person_id}', response_model=Person)
 async def person_detail(
-    person_id: str,
+    person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
 ):
     person = await person_service.get_by_id(person_id)

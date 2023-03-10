@@ -61,7 +61,7 @@ class RetrieveDataMixin:
     async def _data_from_cache(
         self, data_id: str | None = None
     ) -> Film | Genre | PersonBase:
-        data = await self.redis.get(data_id)
+        data = await self.redis.get(str(data_id))
         if not data:
             return None
 
@@ -72,5 +72,5 @@ class RetrieveDataMixin:
         self, data: Film | Genre | list[Genre | Film] | PersonBase
     ) -> Film | Genre:
         await self.redis.set(
-            data.uuid, data.json(), FILM_CACHE_EXPIRE_IN_SECONDS
+            str(data.uuid), data.json(), FILM_CACHE_EXPIRE_IN_SECONDS
         )
