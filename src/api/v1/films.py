@@ -1,26 +1,39 @@
 from http import HTTPStatus
 from typing import Union, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from services.film import FilmService, get_film_service
+from src.services.film import FilmService, get_film_service
 
-from models.genre import Genre
-from models.person import PersonBase
+from src.models.genre import Genre
+from src.models.person import PersonBase
 
 router = APIRouter()
 
 
-class Film(BaseModel):
+class FilmBase(BaseModel):
     uuid: str
     title: str
-    description: str
     imdb_rating: float
+
+
+class Film(FilmBase):
+    description: str | None
     genre: Union[List[Genre], None]
     actors: Union[List[PersonBase], None]
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
+
+@router.get("/")
+async def films(
+    sort: Union[str, None] = Query(default='imdb_rating', alias='-imdb_rating'),
+    size: int = Query(default=50, alias='page[size]', ge=0),
+    page: int = Query(default=0, alias='page[number]', ge=0),
+    filter_genre: str = Query(default=None,alias='filter[genre]'),
+    film_service: FilmService = Depends(get_film_service)) -> List[FilmBase]:
+    films = await film_service.get_films(sort, size, page, filter_genre)
+    return films
 
 # Внедряем FilmService с помощью Depends(get_film_service)
 @router.get('/{film_id}', response_model=Film)
