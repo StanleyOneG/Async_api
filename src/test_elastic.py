@@ -10,7 +10,7 @@ es = AsyncElasticsearch(
 
 async def main():
     resp = await es.search(
-        index="genres",
+        index="persons",
         body={"query": {"match_all": {}}},
         # size=20,
     )
