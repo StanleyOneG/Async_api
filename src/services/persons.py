@@ -5,7 +5,7 @@ from elasticsearch import AsyncElasticsearch
 from redis import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.person import PersonBase
+from models.person import PersonBase, PersonWithFilms
 from models.models_mixins import RetrieveDataMixin
 from fastapi import Depends
 
@@ -16,7 +16,7 @@ class PersonService(RetrieveDataMixin):
 
     redis: Redis
     elastic: AsyncElasticsearch
-    model: PersonBase
+    model: PersonWithFilms
     elastic_index: str
 
 
@@ -28,6 +28,6 @@ def get_person_service(
     return PersonService(
         redis=redis,
         elastic=elastic,
-        model=PersonBase,
+        model=PersonWithFilms,
         elastic_index='persons',
     )

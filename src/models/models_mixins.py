@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from models.film import Film
 from models.genre import Genre
-from models.person import PersonBase
+from models.person import PersonBase, PersonWithFilms
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -26,7 +26,7 @@ class OrjsonMixin(BaseModel):
 class RetrieveDataMixin:
     """Mixin class for retrieving data from a databases."""
 
-    async def get_by_id(self, data_id: str) -> Film | Genre | PersonBase:
+    async def get_by_id(self, data_id: str) -> Film | Genre | PersonWithFilms:
         data = await self._data_from_cache(data_id)
         if not data:
             data = await self._get_data_from_elastic(data_id)
@@ -51,7 +51,7 @@ class RetrieveDataMixin:
 
     async def _get_data_from_elastic(
         self, data_id: str
-    ) -> Film | Genre | list[Genre] | PersonBase:
+    ) -> Film | Genre | list[Genre] | PersonWithFilms:
         try:
             doc = await self.elastic.get(index=self.elastic_index, id=data_id)
         except NotFoundError:
@@ -60,7 +60,7 @@ class RetrieveDataMixin:
 
     async def _data_from_cache(
         self, data_id: str | None = None
-    ) -> Film | Genre | PersonBase:
+    ) -> Film | Genre | PersonWithFilms:
         data = await self.redis.get(str(data_id))
         if not data:
             return None
@@ -69,7 +69,7 @@ class RetrieveDataMixin:
         return data
 
     async def _put_data_to_cache(
-        self, data: Film | Genre | list[Genre | Film] | PersonBase
+        self, data: Film | Genre | list[Genre | Film] | PersonWithFilms
     ) -> Film | Genre:
         await self.redis.set(
             str(data.uuid), data.json(), FILM_CACHE_EXPIRE_IN_SECONDS

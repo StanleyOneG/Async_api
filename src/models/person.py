@@ -11,6 +11,10 @@ class PersonBase(BaseModel):
     uuid: UUID
     full_name: str
 
+
+class PersonWithFilms(PersonBase):
+    film_work_ids: list[str | None]
+
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps

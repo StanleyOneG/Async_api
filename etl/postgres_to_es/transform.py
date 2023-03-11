@@ -76,11 +76,6 @@ class Transformer:
             ]
             movie['title'] = film['title']
             movie['description'] = film['description']
-            movie['director'] = [
-                person['person_full_name']
-                for person in film['persons']
-                if person['person_role'] == 'director'
-            ]
             movie['directors'] = [
                 {
                     key.split('_', 1)[1]: value
