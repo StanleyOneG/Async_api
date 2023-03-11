@@ -135,11 +135,14 @@ class ExtractorFromPostgres:
             for person in persons:
                 pg_cursor.execute(
                     """
-                    SELECT
-                        person.id,
-                        person.full_name
-                    FROM person
-                    WHERE person.id = '{0}'
+                    SELECT 
+                        p.id, 
+                        p.full_name, 
+                        COALESCE(CONCAT_WS(',', ARRAY_AGG(pfw.film_work_id)), '') AS film_work_ids
+                    FROM person p
+                    LEFT JOIN person_film_work pfw ON p.id = pfw.person_id
+                    WHERE p.id = '{0}'
+                    GROUP BY p.id, p.full_name
                     """.format(
                         person,
                     ),
