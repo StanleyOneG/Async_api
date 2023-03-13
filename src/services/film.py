@@ -1,8 +1,9 @@
 from functools import lru_cache
+import json
 from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
@@ -47,6 +48,17 @@ class FilmService:
             await self._put_film_to_cache(film)
 
         return film
+    
+    async def get_films_search(
+        self,
+        query: str,
+        page: int,
+        size: int,
+    ) -> list[FilmBase]:
+        films = await self._get_films_search_from_elastic(query, page, size)
+        if not films:
+            return []
+        return films
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
@@ -120,6 +132,36 @@ class FilmService:
         # pydantic позволяет сериализовать модель в json
         await self.redis.set(film.uuid, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
+    async def _get_films_search_from_elastic(
+        self,
+        query: str,
+        page: int,
+        size: int,
+    ):
+        query_body = {}
+        
+        if not query:
+            return None
+            
+        if page:
+            query_body['from'] = page
+        
+        if size:
+            query_body["size"] = size
+            
+        query_body["query"]= {
+            "match": {
+                "title": {
+                    "query": query,
+                    "fuzziness": "AUTO"
+                }
+            }
+        }
+        try:
+            doc = await self.elastic.search(body = query_body, index='movies')
+        except NotFoundError:
+            return []
+        return [FilmBase(**movie['_source']) for movie in doc['hits']['hits']]
 
 @lru_cache()
 def get_film_service(

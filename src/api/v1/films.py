@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Union, List
+from typing import Any, Union, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -25,6 +25,16 @@ class Film(FilmBase):
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
 
+
+@router.get('/search')
+async def search_films(
+    query: str = Query(default=None),
+    page: int = Query(default=0, alias='page_number', ge=0),
+    size: int = Query(default=50, alias='page_size', ge=1, le=1000),
+    film_service: FilmService = Depends(get_film_service),
+) -> List[FilmBase]:
+    films = await film_service.get_films_search(query, page, size)
+    return films
 
 @router.get("/")
 async def films(
@@ -71,3 +81,4 @@ async def film_details(
         directors=film.directors,
         genre=film.genre,
     )
+
