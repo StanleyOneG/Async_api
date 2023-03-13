@@ -55,7 +55,7 @@ async def films(
 async def film_details(
     film_id: str, film_service: FilmService = Depends(get_film_service)
 ) -> Film:
-    film = await film_service.get_by_id(film_id)
+    film = await film_service.get_by_id(film_id, Film)
     if not film:
         # Если фильм не найден, отдаём 404 статус
         # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum

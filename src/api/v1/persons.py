@@ -5,7 +5,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from services.film import FilmService, get_film_service
+from models.person import PersonWithFilms
+from services.film import FilmService, get_film_service, Film, FilmBase
 
 
 from services.persons import PersonService, get_person_service
@@ -19,21 +20,32 @@ class Person(BaseModel):
     films: list | Any
 
 
-async def get_film_by_id(film_work_id, film_service):
-    film = await film_service.get_by_id(film_work_id)
+async def get_film_by_id(
+    film_work_id: UUID,
+    film_service: FilmService,
+    model: Film | FilmBase,
+):
+    film = await film_service.get_by_id(film_work_id, model)
     return film
 
 
-async def get_person_related_films(film_service, person) -> list:
+async def get_person_related_films(
+    film_service: FilmService,
+    person: PersonWithFilms,
+    model: Film | FilmBase,
+) -> list:
     films = []
     tasks = []
     for item in person.film_work_ids:
-        task = asyncio.create_task(get_film_by_id(item, film_service))
+        task = asyncio.create_task(get_film_by_id(item, film_service, model))
         tasks.append(task)
 
     for task in asyncio.as_completed(tasks):
         film = await task
         films.append(film)
+
+    if model == FilmBase:
+        return films
 
     related_movies = []
     for film_work_id, actors, writers, directors in [
@@ -62,7 +74,6 @@ async def search_persons(
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
 ):
-    pass
     persons = await person_service.get_persons_search(
         query,
         page,
@@ -79,10 +90,27 @@ async def search_persons(
             Person(
                 uuid=person.uuid,
                 full_name=person.full_name,
-                films=await get_person_related_films(film_service, person),
+                films=await get_person_related_films(
+                    film_service, person, Film
+                ),
             )
         )
     return result
+
+
+@router.get('/{person_id}/film')
+async def films_by_person(
+    person_id: UUID,
+    person_service: PersonService = Depends(get_person_service),
+    film_service: FilmService = Depends(get_film_service),
+):
+    person = await person_service.get_by_id(person_id)
+    if not person:
+        return []
+    related_films = await get_person_related_films(
+        film_service, person, FilmBase
+    )
+    return related_films
 
 
 @router.get('/{person_id}', response_model=Person)
@@ -92,9 +120,11 @@ async def person_detail(
     film_service: FilmService = Depends(get_film_service),
 ):
     person = await person_service.get_by_id(person_id)
+    if not person:
+        return []
 
     return Person(
         uuid=person.uuid,
         full_name=person.full_name,
-        films=await get_person_related_films(film_service, person),
+        films=await get_person_related_films(film_service, person, Film),
     )
