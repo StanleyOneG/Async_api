@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 import orjson
 from pydantic import BaseModel
@@ -8,7 +9,7 @@ def orjson_dumps(v, *, default):
 
 
 class PersonBase(BaseModel):
-    uuid: UUID
+    uuid: UUID | Any
     full_name: str
 
 

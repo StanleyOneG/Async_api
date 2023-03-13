@@ -58,6 +58,50 @@ class RetrieveDataMixin:
             return None
         return self.model(**doc['_source'])
 
+    async def get_persons_search(
+        self,
+        query: str,
+        page: int,
+        size: int,
+    ) -> list[PersonWithFilms]:
+        persons = await self._get_persons_search_from_elastic(
+            query, page, size
+        )
+        if not persons:
+            return []
+        return persons
+
+    async def _get_persons_search_from_elastic(
+        self,
+        query: str,
+        page: int,
+        size: int,
+    ):
+        query_body = {}
+
+        if not query:
+            return None
+
+        if page:
+            query_body['from'] = page
+
+        if size:
+            query_body["size"] = size
+
+        query_body["query"] = {
+            "match": {"full_name": {"query": query, "fuzziness": "AUTO"}}
+        }
+        try:
+            doc = await self.elastic.search(
+                body=query_body, index=self.elastic_index
+            )
+        except NotFoundError:
+            return []
+        return [
+            PersonWithFilms(**person['_source'])
+            for person in doc['hits']['hits']
+        ]
+
     async def _data_from_cache(
         self, data_id: str | None = None
     ) -> Film | Genre | PersonWithFilms:

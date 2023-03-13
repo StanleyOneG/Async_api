@@ -46,7 +46,8 @@
         "type": "keyword"
       },
       "full_name": {
-        "type": "keyword"
+        "type": "keyword",
+        "analyzer": "lowercase"
       },
       "film_work_ids": {
         "type": "keyword"
