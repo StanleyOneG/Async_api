@@ -58,7 +58,7 @@ class RedisSettings(BaseSettings):
     class Config:
         """Configuration class for correct env variables insertion."""
 
-        env_prefix = 'REDIS_'
+        env_prefix = 'REDIS_ETL_'
 
 
 class Settings(BaseSettings):

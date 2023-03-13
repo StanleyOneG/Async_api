@@ -72,20 +72,29 @@ services:
       start_period: 30s
     container_name: elasticsearch
 
-  redis:
+  redis_etl:
     image: redis:latest
     volumes:
-      - redis_data:/data:rw
-    ports:
-      - 6379:6379
-    # expose:
-    #   - "6379"
+      - redis_etl_data:/data:rw
     depends_on:
       postgresql:
         condition: service_healthy
     command: >
       --save 60 1
-    container_name: redis
+    container_name: redis_etl
+
+  redis_cache:
+    image: redis:latest
+    volumes:
+      - redis_cache_data:/data:rw
+    ports:
+      - 6379:6379
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: >
+      --save 60 1
+    container_name: redis_cache
 
   elastic_loader:
     build:
@@ -100,7 +109,7 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-      redis:
+      redis_etl:
         condition: service_started
     container_name: elastic_loader
 
@@ -117,7 +126,7 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-      redis:
+      redis_etl:
         condition: service_started
     container_name: elastic_genres_loader
 
@@ -134,11 +143,12 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-      redis:
+      redis_etl:
         condition: service_started
     container_name: elastic_persons_loader
 
 volumes:
   postgres_data:
   elasticsearch_data:
-  redis_data:
+  redis_etl_data:
+  redis_cache_data:
