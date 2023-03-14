@@ -31,7 +31,8 @@ class Film(FilmBase):
             summary="Похожие фильмы",
             description="Список похожих фильмов по жанру",
             response_description="Похожие фильму по жанру",
-            tags=["Похожие фильмы"])
+            tags=["Похожие фильмы"],
+            response_model=FilmBase)
 async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
@@ -51,7 +52,8 @@ async def similar_films(film_id: str, film_service: FilmService = Depends(get_fi
             summary="Поиск кинопроизведений",
             description="Полнотекстовый поиск по кинопроизведениям",
             response_description="Название и рейтинг фильма",
-            tags=["Полнотекстовый поиск"])
+            tags=["Полнотекстовый поиск"],
+            response_model=FilmBase)
 async def search_films(
     query: str = Query(default=None),
     page: int = Query(default=0, alias='page_number', ge=0),
@@ -65,7 +67,8 @@ async def search_films(
             summary="Кинопроизведения",
             description="Кинопроизведения",
             response_description="Список кинопроизведений",
-            tags=["Кинопроизведения"])
+            tags=["Кинопроизведения"],
+            response_model=FilmBase)
 async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'

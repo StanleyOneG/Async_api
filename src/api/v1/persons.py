@@ -70,7 +70,8 @@ async def get_person_related_films(
             summary="Поиск участников",
             description="Поиск участников",
             response_description="Список найденных участников",
-            tags=["Участники"])
+            tags=["Полнотекстовый поиск"],
+            response_model=Person)
 async def search_persons(
     query: str = Query(default=None),
     page: int = Query(default=None, alias='page_number', ge=0),
@@ -106,7 +107,8 @@ async def search_persons(
             summary="Кинопроизведения по выбранному участнику",
             description="Кинопроизведения по выбранному участнику",
             response_description="Кинопроизведения по выбранному участнику",
-            tags=["Участники"])
+            tags=["Участники"],
+            response_model=FilmBase)
 async def films_by_person(
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
