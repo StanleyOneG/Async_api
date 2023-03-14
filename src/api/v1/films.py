@@ -30,6 +30,10 @@ class Film(FilmBase):
 @router.get('/{film_id}/similar', description='Similar films defined by genre')
 async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
+    if not film:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='film not found'
+        )
     genre_ids = [genre.uuid for genre in film.genre]
     result = await asyncio.gather(
         *[film_service.get_films(sort='imdb_rating', 
