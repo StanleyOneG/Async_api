@@ -10,6 +10,7 @@ configs = Settings()
 
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
 PROJECT_DESCRIPTION = os.getenv('PROJECT_DESCRIPTION', 'Movies description')
+PROJECT_VERSION = os.getenv('PROJECT_VERSION', "1.0.0")
 
 REDIS_CACHE_HOST = configs.REDIS.API_HOST
 REDIS_CACHE_PORT = int(os.getenv('REDIS_PORT', 6379))
