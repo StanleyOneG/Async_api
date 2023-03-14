@@ -1,5 +1,7 @@
+import asyncio
 from http import HTTPStatus
 from typing import Any, Union, List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -25,6 +27,17 @@ class Film(FilmBase):
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
 
+@router.get('/{film_id}/similar', description='Similar films defined by genre')
+async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
+    film = await film_service.get_by_id(film_id, Film)
+    genre_ids = [genre.uuid for genre in film.genre]
+    result = await asyncio.gather(
+        *[film_service.get_films(sort='imdb_rating', 
+                                 size=10, page=0, 
+                                 filter_genre=genre_id) 
+          for genre_id in genre_ids],
+    )
+    return result
 
 @router.get('/search')
 async def search_films(
