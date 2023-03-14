@@ -58,9 +58,9 @@ async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'
     ),
-    size: int = Query(default=50, alias='page[size]', ge=0),
-    page: int = Query(default=0, alias='page[number]', ge=0),
-    filter_genre: str = Query(default=None, alias='filter[genre]'),
+    size: int = Query(default=50, alias='page_size', ge=0),
+    page: int = Query(default=0, alias='page_number', ge=0),
+    filter_genre: str = Query(default=None, alias='genre'),
     film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await film_service.get_films(sort, size, page, filter_genre)
