@@ -66,7 +66,11 @@ async def get_person_related_films(
     return related_movies
 
 
-@router.get('/search')
+@router.get('/search',
+            summary="Поиск участников",
+            description="Поиск участников",
+            response_description="Список найденных участников",
+            tags=["Участники"])
 async def search_persons(
     query: str = Query(default=None),
     page: int = Query(default=None, alias='page_number', ge=0),
@@ -98,7 +102,11 @@ async def search_persons(
     return result
 
 
-@router.get('/{person_id}/film')
+@router.get('/{person_id}/film',
+            summary="Кинопроизведения по выбранному участнику",
+            description="Кинопроизведения по выбранному участнику",
+            response_description="Кинопроизведения по выбранному участнику",
+            tags=["Участники"])
 async def films_by_person(
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
@@ -113,7 +121,12 @@ async def films_by_person(
     return related_films
 
 
-@router.get('/{person_id}', response_model=Person)
+@router.get('/{person_id}',
+            summary="Участник",
+            description="Детали участаника",
+            response_description="Детали учатсника",
+            tags=["Участники"],
+            response_model=Person)
 async def person_detail(
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),

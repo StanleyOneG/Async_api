@@ -27,7 +27,11 @@ class Film(FilmBase):
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
 
-@router.get('/{film_id}/similar', description='Similar films defined by genre')
+@router.get('/{film_id}/similar',
+            summary="Похожие фильмы",
+            description="Список похожих фильмов по жанру",
+            response_description="Похожие фильму по жанру",
+            tags=["Похожие фильмы"])
 async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
@@ -43,7 +47,11 @@ async def similar_films(film_id: str, film_service: FilmService = Depends(get_fi
     )
     return result
 
-@router.get('/search')
+@router.get('/search',
+            summary="Поиск кинопроизведений",
+            description="Полнотекстовый поиск по кинопроизведениям",
+            response_description="Название и рейтинг фильма",
+            tags=["Полнотекстовый поиск"])
 async def search_films(
     query: str = Query(default=None),
     page: int = Query(default=0, alias='page_number', ge=0),
@@ -53,7 +61,11 @@ async def search_films(
     films = await film_service.get_films_search(query, page, size)
     return films
 
-@router.get("/")
+@router.get("/",
+            summary="Кинопроизведения",
+            description="Кинопроизведения",
+            response_description="Список кинопроизведений",
+            tags=["Кинопроизведения"])
 async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'
@@ -67,26 +79,20 @@ async def films(
     return films
 
 
-# Внедряем FilmService с помощью Depends(get_film_service)
-@router.get('/{film_id}', response_model=Film)
+@router.get('/{film_id}',
+            summary="Кинопроизведение",
+            description="Кинопроизведение по ID",
+            response_description="Детали кинопроизведения по ID",
+            tags=["Кинопроизведение"],
+            response_model=Film)
 async def film_details(
     film_id: str, film_service: FilmService = Depends(get_film_service)
 ) -> Film:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
-        # Если фильм не найден, отдаём 404 статус
-        # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum
-        # Такой код будет более поддерживаемым
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='film not found'
         )
-
-    # Перекладываем данные из models.Film в Film
-    # Обратите внимание, что у модели бизнес-логики есть поле description
-    # Которое отсутствует в модели ответа API.
-    # Если бы использовалась общая модель для бизнес-логики и формирования ответов API
-    # вы бы предоставляли клиентам данные, которые им не нужны
-    # и, возможно, данные, которые опасно возвращать
 
     return Film(
         uuid=film.uuid,
@@ -98,4 +104,3 @@ async def film_details(
         directors=film.directors,
         genre=film.genre,
     )
-
