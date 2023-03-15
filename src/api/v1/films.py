@@ -32,12 +32,16 @@ class Film(FilmBase):
             description="Список похожих фильмов по жанру",
             response_description="Похожие фильму по жанру",
             tags=["Похожие фильмы"],
-            response_model=FilmBase)
-async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
+            response_model=List[FilmBase],
+)
+async def similar_films(
+    film_id: str,
+    film_service: FilmService = Depends(get_film_service),
+    ) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='film not found'
+            status_code=HTTPStatus.NOT_FOUND, detail='film not found',
         )
     genre_ids = [genre.uuid for genre in film.genre]
     result = await asyncio.gather(
@@ -46,14 +50,19 @@ async def similar_films(film_id: str, film_service: FilmService = Depends(get_fi
                                  filter_genre=genre_id) 
           for genre_id in genre_ids],
     )
-    return result
+    similars = []
+    for group in result:
+        for film in group:
+            if film.uuid not in similars:
+                similars.append(film)
+    return sorted(similars, key=lambda film: film.imdb_rating, reverse=True)
 
 @router.get('/search',
             summary="Поиск кинопроизведений",
             description="Полнотекстовый поиск по кинопроизведениям",
             response_description="Название и рейтинг фильма",
             tags=["Полнотекстовый поиск"],
-            response_model=FilmBase)
+            response_model=List[FilmBase])
 async def search_films(
     query: str = Query(default=None),
     page: int = Query(default=0, alias='page_number', ge=0),
@@ -68,7 +77,7 @@ async def search_films(
             description="Кинопроизведения",
             response_description="Список кинопроизведений",
             tags=["Кинопроизведения"],
-            response_model=FilmBase)
+            response_model=List[FilmBase])
 async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'

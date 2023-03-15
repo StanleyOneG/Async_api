@@ -15,9 +15,9 @@ router = APIRouter()
 
 
 class Person(BaseModel):
-    uuid: UUID | Any
+    uuid: UUID
     full_name: str
-    films: list | Any
+    films: list
 
 
 async def get_film_by_id(
@@ -71,7 +71,7 @@ async def get_person_related_films(
             description="Поиск участников",
             response_description="Список найденных участников",
             tags=["Полнотекстовый поиск"],
-            response_model=Person)
+            response_model=List[Person])
 async def search_persons(
     query: str = Query(default=None),
     page: int = Query(default=None, alias='page_number', ge=0),
@@ -108,7 +108,7 @@ async def search_persons(
             description="Кинопроизведения по выбранному участнику",
             response_description="Кинопроизведения по выбранному участнику",
             tags=["Участники"],
-            response_model=FilmBase)
+            response_model=List[FilmBase])
 async def films_by_person(
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
