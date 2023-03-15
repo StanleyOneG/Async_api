@@ -1,15 +1,16 @@
 import asyncio
 from http import HTTPStatus
 from typing import Any, Union, List
-from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
 
 from models.genre import Genre
 from models.person import PersonBase
+
+from cache.redis_cache import cache
 
 router = APIRouter()
 
@@ -28,7 +29,9 @@ class Film(FilmBase):
     directors: Union[List[PersonBase], None]
 
 @router.get('/{film_id}/similar', description='Similar films defined by genre')
-async def similar_films(film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[FilmBase]:
+@cache
+async def similar_films(request:Request,film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[
+    FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
         raise HTTPException(
@@ -36,42 +39,48 @@ async def similar_films(film_id: str, film_service: FilmService = Depends(get_fi
         )
     genre_ids = [genre.uuid for genre in film.genre]
     result = await asyncio.gather(
-        *[film_service.get_films(sort='imdb_rating', 
-                                 size=10, page=0, 
-                                 filter_genre=genre_id) 
+        *[film_service.get_films(sort='imdb_rating',
+                                 size=10, page=0,
+                                 filter_genre=genre_id)
           for genre_id in genre_ids],
     )
     return result
 
+
 @router.get('/search')
-async def search_films(
-    query: str = Query(default=None),
-    page: int = Query(default=0, alias='page_number', ge=0),
-    size: int = Query(default=50, alias='page_size', ge=1, le=1000),
-    film_service: FilmService = Depends(get_film_service),
-) -> List[FilmBase]:
+@cache
+async def search_films(request:Request,
+                       query: str = Query(default=None),
+                       page: int = Query(default=0, alias='page_number', ge=0),
+                       size: int = Query(default=50, alias='page_size', ge=1, le=1000),
+                       film_service: FilmService = Depends(get_film_service),
+                       ) -> List[FilmBase]:
     films = await film_service.get_films_search(query, page, size)
     return films
 
+
 @router.get("/")
-async def films(
-    sort: Union[str, None] = Query(
-        default='imdb_rating', alias='-imdb_rating'
-    ),
-    size: int = Query(default=50, alias='page[size]', ge=0),
-    page: int = Query(default=0, alias='page[number]', ge=0),
-    filter_genre: str = Query(default=None, alias='filter[genre]'),
-    film_service: FilmService = Depends(get_film_service),
-) -> List[FilmBase]:
+@cache
+async def films(request:Request,
+                sort: Union[str, None] = Query(
+                    default='imdb_rating', alias='-imdb_rating'
+                ),
+                size: int = Query(default=50, alias='page[size]', ge=0),
+                page: int = Query(default=0, alias='page[number]', ge=0),
+                filter_genre: str = Query(default=None, alias='filter[genre]'),
+                film_service: FilmService = Depends(get_film_service),
+                ) -> List[FilmBase]:
     films = await film_service.get_films(sort, size, page, filter_genre)
     return films
 
 
 # Внедряем FilmService с помощью Depends(get_film_service)
+
 @router.get('/{film_id}', response_model=Film)
-async def film_details(
-    film_id: str, film_service: FilmService = Depends(get_film_service)
-) -> Film:
+@cache
+async def film_details(request:Request,
+                       film_id: str, film_service: FilmService = Depends(get_film_service),
+                       ) -> Film:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
         # Если фильм не найден, отдаём 404 статус
@@ -98,4 +107,3 @@ async def film_details(
         directors=film.directors,
         genre=film.genre,
     )
-

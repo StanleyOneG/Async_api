@@ -8,6 +8,7 @@ from pydantic import BaseModel
 # from models.genre import Genre
 from services.genre import GenreService, get_genre_service
 from fastapi import Depends, Request
+from cache.redis_cache import cache
 
 
 router = APIRouter()
@@ -20,6 +21,7 @@ class Genre(BaseModel):
 
 
 @router.get('/', response_model=list[Genre])
+@cache
 async def genre_list(
     request: Request, genre_service: GenreService = Depends(get_genre_service)
 ):
@@ -33,7 +35,8 @@ async def genre_list(
 
 
 @router.get('/{genre_id}', response_model=Genre)
-async def genre_details(
+@cache
+async def genre_details(request: Request,
     genre_id: UUID, genre_service: GenreService = Depends(get_genre_service)
 ) -> Genre:
     genre = await genre_service.get_by_id(genre_id)

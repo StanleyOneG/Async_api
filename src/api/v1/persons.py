@@ -3,13 +3,14 @@ from http import HTTPStatus
 from typing import Any, Union, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from models.person import PersonWithFilms
 from services.film import FilmService, get_film_service, Film, FilmBase
 
 
 from services.persons import PersonService, get_person_service
+from cache.redis_cache import cache
 
 router = APIRouter()
 
@@ -67,7 +68,8 @@ async def get_person_related_films(
 
 
 @router.get('/search')
-async def search_persons(
+@cache
+async def search_persons(request:Request,
     query: str = Query(default=None),
     page: int = Query(default=None, alias='page_number', ge=0),
     size: int = Query(default=None, alias='page_size', ge=1, le=500),
@@ -99,7 +101,8 @@ async def search_persons(
 
 
 @router.get('/{person_id}/film')
-async def films_by_person(
+@cache
+async def films_by_person(request:Request,
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
@@ -114,7 +117,8 @@ async def films_by_person(
 
 
 @router.get('/{person_id}', response_model=Person)
-async def person_detail(
+@cache
+async def person_detail(request:Request,
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
