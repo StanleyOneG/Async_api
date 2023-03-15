@@ -1,6 +1,6 @@
 import asyncio
 from http import HTTPStatus
-from typing import Any, Union, List
+from typing import Union, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
@@ -28,9 +28,13 @@ class Film(FilmBase):
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
 
+
 @router.get('/{film_id}/similar', description='Similar films defined by genre')
 @cache
-async def similar_films(request:Request,film_id: str, film_service: FilmService = Depends(get_film_service)) -> list[
+async def similar_films(
+        request: Request,
+        film_id: str,
+        film_service: FilmService = Depends(get_film_service)) -> list[
     FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
@@ -49,27 +53,29 @@ async def similar_films(request:Request,film_id: str, film_service: FilmService 
 
 @router.get('/search')
 @cache
-async def search_films(request:Request,
-                       query: str = Query(default=None),
-                       page: int = Query(default=0, alias='page_number', ge=0),
-                       size: int = Query(default=50, alias='page_size', ge=1, le=1000),
-                       film_service: FilmService = Depends(get_film_service),
-                       ) -> List[FilmBase]:
+async def search_films(
+        request: Request,
+        query: str = Query(default=None),
+        page: int = Query(default=0, alias='page_number', ge=0),
+        size: int = Query(default=50, alias='page_size', ge=1, le=1000),
+        film_service: FilmService = Depends(get_film_service),
+) -> List[FilmBase]:
     films = await film_service.get_films_search(query, page, size)
     return films
 
 
 @router.get("/")
 @cache
-async def films(request:Request,
-                sort: Union[str, None] = Query(
-                    default='imdb_rating', alias='-imdb_rating'
-                ),
-                size: int = Query(default=50, alias='page[size]', ge=0),
-                page: int = Query(default=0, alias='page[number]', ge=0),
-                filter_genre: str = Query(default=None, alias='filter[genre]'),
-                film_service: FilmService = Depends(get_film_service),
-                ) -> List[FilmBase]:
+async def films(
+        request: Request,
+        sort: Union[str, None] = Query(
+            default='imdb_rating', alias='-imdb_rating'
+        ),
+        size: int = Query(default=50, alias='page[size]', ge=0),
+        page: int = Query(default=0, alias='page[number]', ge=0),
+        filter_genre: str = Query(default=None, alias='filter[genre]'),
+        film_service: FilmService = Depends(get_film_service),
+) -> List[FilmBase]:
     films = await film_service.get_films(sort, size, page, filter_genre)
     return films
 
@@ -78,25 +84,28 @@ async def films(request:Request,
 
 @router.get('/{film_id}', response_model=Film)
 @cache
-async def film_details(request:Request,
-                       film_id: str, film_service: FilmService = Depends(get_film_service),
-                       ) -> Film:
+async def film_details(
+        request: Request,
+        film_id: str, film_service: FilmService = Depends(get_film_service),
+) -> Film:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
-        # Если фильм не найден, отдаём 404 статус
-        # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum
-        # Такой код будет более поддерживаемым
+        """
+        Если фильм не найден, отдаём 404 статус
+        Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum
+        Такой код будет более поддерживаемым
+        """
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='film not found'
         )
-
-    # Перекладываем данные из models.Film в Film
-    # Обратите внимание, что у модели бизнес-логики есть поле description
-    # Которое отсутствует в модели ответа API.
-    # Если бы использовалась общая модель для бизнес-логики и формирования ответов API
-    # вы бы предоставляли клиентам данные, которые им не нужны
-    # и, возможно, данные, которые опасно возвращать
-
+    """
+    Перекладываем данные из models.Film в Film
+    Обратите внимание, что у модели бизнес-логики есть поле description
+    Которое отсутствует в модели ответа API.
+    Если бы использовалась общая модель для бизнес-логики и формирования ответов API
+    вы бы предоставляли клиентам данные, которые им не нужны
+    и, возможно, данные, которые опасно возвращать
+    """
     return Film(
         uuid=film.uuid,
         title=film.title,

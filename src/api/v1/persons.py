@@ -1,13 +1,12 @@
 import asyncio
 from http import HTTPStatus
-from typing import Any, Union, List
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from models.person import PersonWithFilms
 from services.film import FilmService, get_film_service, Film, FilmBase
-
 
 from services.persons import PersonService, get_person_service
 from cache.redis_cache import cache
@@ -22,18 +21,18 @@ class Person(BaseModel):
 
 
 async def get_film_by_id(
-    film_work_id: UUID,
-    film_service: FilmService,
-    model: Film | FilmBase,
+        film_work_id: UUID,
+        film_service: FilmService,
+        model: Film | FilmBase,
 ):
     film = await film_service.get_by_id(film_work_id, model)
     return film
 
 
 async def get_person_related_films(
-    film_service: FilmService,
-    person: PersonWithFilms,
-    model: Film | FilmBase,
+        film_service: FilmService,
+        person: PersonWithFilms,
+        model: Film | FilmBase,
 ) -> list:
     films = []
     tasks = []
@@ -69,13 +68,13 @@ async def get_person_related_films(
 
 @router.get('/search')
 @cache
-async def search_persons(request:Request,
-    query: str = Query(default=None),
-    page: int = Query(default=None, alias='page_number', ge=0),
-    size: int = Query(default=None, alias='page_size', ge=1, le=500),
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
-):
+async def search_persons(request: Request,
+                         query: str = Query(default=None),
+                         page: int = Query(default=None, alias='page_number', ge=0),
+                         size: int = Query(default=None, alias='page_size', ge=1, le=500),
+                         person_service: PersonService = Depends(get_person_service),
+                         film_service: FilmService = Depends(get_film_service),
+                         ):
     persons = await person_service.get_persons_search(
         query,
         page,
@@ -102,10 +101,11 @@ async def search_persons(request:Request,
 
 @router.get('/{person_id}/film')
 @cache
-async def films_by_person(request:Request,
-    person_id: UUID,
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
+async def films_by_person(
+        request: Request,
+        person_id: UUID,
+        person_service: PersonService = Depends(get_person_service),
+        film_service: FilmService = Depends(get_film_service),
 ):
     person = await person_service.get_by_id(person_id)
     if not person:
@@ -118,10 +118,11 @@ async def films_by_person(request:Request,
 
 @router.get('/{person_id}', response_model=Person)
 @cache
-async def person_detail(request:Request,
-    person_id: UUID,
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
+async def person_detail(
+        request: Request,
+        person_id: UUID,
+        person_service: PersonService = Depends(get_person_service),
+        film_service: FilmService = Depends(get_film_service),
 ):
     person = await person_service.get_by_id(person_id)
     if not person:

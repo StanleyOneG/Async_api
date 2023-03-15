@@ -14,6 +14,7 @@ class UUIDEncoder(json.JSONEncoder):
             return str(obj)
         return super().default(obj)
 
+
 def cache(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -32,7 +33,11 @@ def cache(func):
         try:
             await redis.set(key, value.json(), EXPIRE)
         except:
-            await redis.set(key, json.dumps([dict(v) for v in value if not isinstance(v, uuid.UUID)], cls=UUIDEncoder), EXPIRE)
+            serialized_value = json.dumps(
+                [dict(v) for v in value if not isinstance(v, uuid.UUID)],
+                cls=UUIDEncoder
+            )
+            await redis.set(key, serialized_value, EXPIRE)
         logging.info('CACHE MISS')
         return value
 
