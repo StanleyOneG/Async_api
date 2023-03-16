@@ -1,15 +1,16 @@
 import asyncio
 from http import HTTPStatus
-from typing import Any, Union, List
-from uuid import UUID
+from typing import Union, List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
 
 from models.genre import Genre
 from models.person import PersonBase
+
+from cache.redis_cache import cache
 
 router = APIRouter()
 
@@ -34,7 +35,9 @@ class Film(FilmBase):
             tags=["Похожие фильмы"],
             response_model=List[FilmBase],
 )
+@cache
 async def similar_films(
+    request: Request,
     film_id: str,
     film_service: FilmService = Depends(get_film_service),
     ) -> list[FilmBase]:
@@ -63,7 +66,9 @@ async def similar_films(
             response_description="Название и рейтинг фильма",
             tags=["Полнотекстовый поиск"],
             response_model=List[FilmBase])
+@cache
 async def search_films(
+    request: Request,
     query: str = Query(default=None),
     page: int = Query(default=0, alias='page_number', ge=0),
     size: int = Query(default=50, alias='page_size', ge=1, le=1000),
@@ -78,7 +83,9 @@ async def search_films(
             response_description="Список кинопроизведений",
             tags=["Кинопроизведения"],
             response_model=List[FilmBase])
+@cache
 async def films(
+    request: Request,
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'
     ),
@@ -97,7 +104,9 @@ async def films(
             response_description="Детали кинопроизведения по ID",
             tags=["Кинопроизведение"],
             response_model=Film)
+@cache
 async def film_details(
+    request: Request,
     film_id: str, film_service: FilmService = Depends(get_film_service)
 ) -> Film:
     film = await film_service.get_by_id(film_id, Film)

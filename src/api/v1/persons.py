@@ -1,15 +1,15 @@
 import asyncio
 from http import HTTPStatus
-from typing import Any, Union, List
+from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from models.person import PersonWithFilms
 from services.film import FilmService, get_film_service, Film, FilmBase
 
-
 from services.persons import PersonService, get_person_service
+from cache.redis_cache import cache
 
 router = APIRouter()
 
@@ -72,7 +72,9 @@ async def get_person_related_films(
             response_description="Список найденных участников",
             tags=["Полнотекстовый поиск"],
             response_model=List[Person])
+@cache
 async def search_persons(
+    request: Request,
     query: str = Query(default=None),
     page: int = Query(default=None, alias='page_number', ge=0),
     size: int = Query(default=None, alias='page_size', ge=1, le=500),
@@ -109,7 +111,9 @@ async def search_persons(
             response_description="Кинопроизведения по выбранному участнику",
             tags=["Участники"],
             response_model=List[FilmBase])
+@cache
 async def films_by_person(
+    request: Request,
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
@@ -129,7 +133,9 @@ async def films_by_person(
             response_description="Детали учатсника",
             tags=["Участники"],
             response_model=Person)
+@cache
 async def person_detail(
+    request: Request,
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),

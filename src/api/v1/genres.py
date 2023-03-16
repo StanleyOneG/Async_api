@@ -1,13 +1,13 @@
 from http import HTTPStatus
-from typing import List
 from uuid import UUID
 from fastapi import HTTPException
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-# from models.genre import Genre
 from services.genre import GenreService, get_genre_service
 from fastapi import Depends, Request
+
+from cache.redis_cache import cache
 
 
 router = APIRouter()
@@ -25,8 +25,10 @@ class Genre(BaseModel):
             response_description="Список жанров",
             tags=["Жанры"],
             response_model=list[Genre])
+@cache
 async def genre_list(
-    request: Request, genre_service: GenreService = Depends(get_genre_service)
+    request: Request,
+    genre_service: GenreService = Depends(get_genre_service)
 ):
     genres = await genre_service.get_genres_list(request)
     if not genres:
@@ -43,8 +45,11 @@ async def genre_list(
             response_description="Жанр по ID",
             tags=["Жанры"],
             response_model=Genre)
+@cache
 async def genre_details(
-    genre_id: UUID, genre_service: GenreService = Depends(get_genre_service)
+    request: Request,
+    genre_id: UUID,
+    genre_service: GenreService = Depends(get_genre_service)
 ) -> Genre:
     genre = await genre_service.get_by_id(genre_id)
     if not genre:
