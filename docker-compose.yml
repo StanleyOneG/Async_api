@@ -11,8 +11,6 @@ services:
         condition: service_healthy
     expose:
       - 8000
-    # ports:
-    #   - 8000:8000
     container_name: api
 
   nginx:
@@ -38,7 +36,7 @@ services:
       - ./.env
     volumes:
       - postgres_data:/var/lib/postgressql/data
-      - ./etl/sqlite_to_postgres/movies_database.sql:/docker-entrypoint-initdb.d/movies_database.sql 
+      - ./etl_movies/sqlite_to_postgres/movies_database.sql:/docker-entrypoint-initdb.d/movies_database.sql 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $POSTGRES_DB -U $POSTGRES_USER"]
       interval: 3s
@@ -46,12 +44,10 @@ services:
       retries: 5
       start_period: 80s 
     container_name: postgresql
-    # ports:
-    #   - "5432:5432"
 
   sqlite_loader:
     build:
-      context: ./etl/sqlite_to_postgres
+      context: ./etl_movies/sqlite_to_postgres
       dockerfile: Dockerfile
     env_file:
       - ./.env
@@ -75,9 +71,6 @@ services:
     expose:
       - 9200
       - 9300
-    # ports:
-    #   - 9200:9200
-    #   - 9300:9300
     env_file:
       - ./.env
     volumes:
@@ -110,8 +103,6 @@ services:
       - redis_cache_data:/data:rw
     expose:
       - 6379
-    # ports:
-    #   - 6379:6379
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -121,7 +112,7 @@ services:
 
   elastic_loader:
     build:
-      context: ./etl/postgres_to_es
+      context: ./etl_movies/postgres_to_es
       dockerfile: Dockerfile
     env_file:
       - ./.env
@@ -138,7 +129,7 @@ services:
 
   elastic_genres_loader:
     build:
-      context: ./etl_genres/postgres_to_es
+      context: ./etl_genres/
       dockerfile: Dockerfile
     env_file:
       - ./.env
@@ -155,7 +146,7 @@ services:
 
   elastic_persons_loader:
     build:
-      context: ./etl_persons/postgres_to_es
+      context: ./etl_persons
       dockerfile: Dockerfile
     env_file:
       - ./.env

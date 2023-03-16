@@ -9,7 +9,7 @@ load_dotenv()
 class ElasticSettings(BaseSettings):
     """Configuration for Elasticsearch."""
 
-    API_HOST: str = Field(alias='host')
+    HOST: str 
     PORT: int
     USERNAME: str
     PASSWORD: str
