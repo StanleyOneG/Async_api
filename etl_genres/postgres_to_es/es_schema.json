@@ -46,8 +46,8 @@
         "type": "keyword"
       },
       "name": {
-        "type": "keyword",
-        "analyzer": "lowercase"
+        "type": "text",
+        "analyzer": "pattern"
       },
       "description": {
         "type": "text",
