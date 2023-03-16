@@ -5,11 +5,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
-from models.person import PersonWithFilms
-from services.film import FilmService, get_film_service, Film, FilmBase
 
-from services.persons import PersonService, get_person_service
 from cache.redis_cache import cache
+from models.person import PersonWithFilms
+from services.film import Film, FilmBase, FilmService, get_film_service
+from services.persons import PersonService, get_person_service
 
 router = APIRouter()
 

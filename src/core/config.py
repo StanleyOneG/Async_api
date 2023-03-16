@@ -1,8 +1,9 @@
 import os
 from logging import config as logging_config
-from .backend_conf import Settings
 
 from core.logger import LOGGING
+
+from .backend_conf import Settings
 
 logging_config.dictConfig(LOGGING)
 

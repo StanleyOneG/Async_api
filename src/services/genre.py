@@ -1,13 +1,14 @@
 import dataclasses
 from functools import lru_cache
-from elasticsearch import AsyncElasticsearch
 
+from elasticsearch import AsyncElasticsearch
+from fastapi import Depends
 from redis import Redis
+
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.genre import Genre
 from models.models_mixins import RetrieveDataMixin
-from fastapi import Depends
 
 
 @dataclasses.dataclass

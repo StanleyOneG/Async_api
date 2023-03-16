@@ -1,7 +1,6 @@
 from uuid import UUID
-import orjson
-from typing import List, Union
 
+import orjson
 from pydantic import BaseModel
 
 

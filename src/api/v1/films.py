@@ -1,16 +1,14 @@
 import asyncio
 from http import HTTPStatus
-from typing import Union, List
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
-from services.film import FilmService, get_film_service
-
+from cache.redis_cache import cache
 from models.genre import Genre
 from models.person import PersonBase
-
-from cache.redis_cache import cache
+from services.film import FilmService, get_film_service
 
 router = APIRouter()
 

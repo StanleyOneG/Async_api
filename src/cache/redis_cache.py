@@ -1,11 +1,13 @@
+import json
+import logging
+import uuid
+from functools import wraps
+
+from redis.asyncio import Redis
+
 from core.config import REDIS_CACHE_EXPIRE as EXPIRE
 from core.config import REDIS_CACHE_HOST as HOST
 from core.config import REDIS_CACHE_PORT as PORT
-from redis.asyncio import Redis
-import json
-from functools import wraps
-import logging
-import uuid
 
 
 class UUIDEncoder(json.JSONEncoder):

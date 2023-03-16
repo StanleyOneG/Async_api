@@ -1,14 +1,11 @@
-from dataclasses import dataclass
-from functools import lru_cache
-from typing import Optional, Union
 
 import orjson
 from elasticsearch import NotFoundError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from models.film import Film
 from models.genre import Genre
-from models.person import PersonBase, PersonWithFilms
+from models.person import PersonWithFilms
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
