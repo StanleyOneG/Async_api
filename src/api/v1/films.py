@@ -26,6 +26,7 @@ class Film(FilmBase):
     writers: Union[List[PersonBase], None]
     directors: Union[List[PersonBase], None]
 
+
 @router.get('/{film_id}/similar',
             summary="Похожие фильмы",
             description="Список похожих фильмов по жанру",
@@ -58,6 +59,7 @@ async def similar_films(
                 similars.append(film)
     return sorted(similars, key=lambda film: film.imdb_rating, reverse=True)
 
+
 @router.get('/search',
             summary="Поиск кинопроизведений",
             description="Полнотекстовый поиск по кинопроизведениям",
@@ -74,6 +76,7 @@ async def search_films(
 ) -> List[FilmBase]:
     films = await film_service.get_films_search(query, page, size)
     return films
+
 
 @router.get("/",
             summary="Кинопроизведения",

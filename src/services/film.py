@@ -33,13 +33,11 @@ class FilmService:
 
     # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: str, model: FilmBase | Film) -> Optional[Film | FilmBase]:
-        # Пытаемся получить данные из кеша, потому что оно работает быстрее
         if model == FilmBase:
             film = await self._get_film_from_elastic(film_id, model)
             if not film:
                 return None
             return film
-            # Если фильма нет в кеше, то ищем его в Elasticsearch
         film = await self._get_film_from_elastic(film_id, model)
         if not film:
             # Если он отсутствует в Elasticsearch, значит, фильма вообще нет в базе
@@ -65,11 +63,12 @@ class FilmService:
             return None
         return model(**doc['_source'])
 
-    async def _get_films_from_elastic(self,
-                                      sort,
-                                      size,
-                                      page,
-                                      filter_genre) -> list[FilmBase]:
+    async def _get_films_from_elastic(
+            sort: str,
+            size: int,
+            page: int,
+            filter_genre: Optional[str] = None
+    ) -> list[FilmBase]:
         query_body = {
             "query": {
             }
