@@ -18,31 +18,25 @@ class FilmService:
     async def get_films(
             self,
             sort: str,
-            size: int,
-            page: int,
+            common_query_params,
             filter_genre: str) -> list[FilmBase]:
         films = await self._get_films_from_elastic(
             sort=sort,
-            size=size,
-            page=page,
+            common_query_params = common_query_params,
             filter_genre=filter_genre
         )
         if not films:
             return []
         return films
 
-    # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: str, model: FilmBase | Film) -> Optional[Film | FilmBase]:
-        # Пытаемся получить данные из кеша, потому что оно работает быстрее
         if model == FilmBase:
             film = await self._get_film_from_elastic(film_id, model)
             if not film:
                 return None
             return film
-            # Если фильма нет в кеше, то ищем его в Elasticsearch
         film = await self._get_film_from_elastic(film_id, model)
         if not film:
-            # Если он отсутствует в Elasticsearch, значит, фильма вообще нет в базе
             return None
 
         return film
@@ -50,10 +44,9 @@ class FilmService:
     async def get_films_search(
             self,
             query: str,
-            page: int,
-            size: int,
+            common_query_params,
     ) -> list[FilmBase]:
-        films = await self._get_films_search_from_elastic(query, page, size)
+        films = await self._get_films_search_from_elastic(query, common_query_params)
         if not films:
             return []
         return films
@@ -67,8 +60,7 @@ class FilmService:
 
     async def _get_films_from_elastic(self,
                                       sort,
-                                      size,
-                                      page,
+                                      common_query_params,
                                       filter_genre) -> list[FilmBase]:
         query_body = {
             "query": {
@@ -82,10 +74,10 @@ class FilmService:
                     "order": "desc"
                 }
             }
-        if size:
-            query_body['size'] = size
-        if page:
-            query_body['from'] = page
+        if common_query_params.size:
+            query_body['size'] = common_query_params.size
+        if common_query_params.page:
+            query_body['from'] = common_query_params.page
         if filter_genre:
             query_body['query'] = {
                 "nested": {
@@ -115,19 +107,18 @@ class FilmService:
     async def _get_films_search_from_elastic(
             self,
             query: str,
-            page: int,
-            size: int,
+            common_query_params,
     ):
         query_body = {}
 
         if not query:
             return None
 
-        if page:
-            query_body['from'] = page
+        if common_query_params.page:
+            query_body['from'] = common_query_params.page
 
-        if size:
-            query_body["size"] = size
+        if common_query_params.size:
+            query_body["size"] = common_query_params.size
 
         query_body["query"] = {
             "match": {
