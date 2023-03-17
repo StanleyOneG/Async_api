@@ -1,34 +1,5 @@
 version: "3.8"
 services:
-  api:
-    build:
-      context: ./src
-      dockerfile: Dockerfile
-    env_file:
-      - ./.env
-    depends_on:
-      postgresql:
-        condition: service_healthy
-    expose:
-      - 8000
-    container_name: api
-
-  nginx:
-    image: nginx:1.23.3
-    restart: unless-stopped
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      api:
-        condition: service_started
-    ports:
-      - 80:80
-      - 9200:9200
-    container_name: nginx
-
   postgresql:
     image: postgres:14
     restart: unless-stopped
@@ -160,6 +131,38 @@ services:
       redis_etl:
         condition: service_started
     container_name: elastic_persons_loader
+
+  api:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      redis_cache:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+    expose:
+      - 8000
+    container_name: api
+
+  nginx:
+    image: nginx:1.23.3
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      api:
+        condition: service_started
+    ports:
+      - 80:80
+      - 9200:9200
+    container_name: nginx
+
 
 volumes:
   postgres_data:
