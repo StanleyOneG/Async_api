@@ -37,7 +37,6 @@ services:
       - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - ELASTICSEARCH_USERNAME=${ELASTIC_USERNAME}
     restart: unless-stopped
     expose:
       - 9200
