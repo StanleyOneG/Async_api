@@ -1,5 +1,6 @@
 
 import uvicorn
+import gunicorn
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse

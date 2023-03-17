@@ -3,28 +3,13 @@ from http import HTTPStatus
 from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from pydantic import BaseModel
 
 from cache.redis_cache import cache
-from models.genre import Genre
-from models.person import PersonBase
 from services.film import FilmService, get_film_service
+from .schemas import Film, FilmBase
 
 router = APIRouter()
 
-
-class FilmBase(BaseModel):
-    uuid: str
-    title: str
-    imdb_rating: float
-
-
-class Film(FilmBase):
-    description: str | None
-    genre: Union[List[Genre], None]
-    actors: Union[List[PersonBase], None]
-    writers: Union[List[PersonBase], None]
-    directors: Union[List[PersonBase], None]
 
 @router.get('/{film_id}/similar',
             summary="Похожие фильмы",

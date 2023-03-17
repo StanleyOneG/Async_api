@@ -10,14 +10,9 @@ from cache.redis_cache import cache
 from models.person import PersonWithFilms
 from services.film import Film, FilmBase, FilmService, get_film_service
 from services.persons import PersonService, get_person_service
+from .schemas import Person
 
 router = APIRouter()
-
-
-class Person(BaseModel):
-    uuid: UUID
-    full_name: str
-    films: list
 
 
 async def get_film_by_id(

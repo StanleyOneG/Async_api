@@ -2,18 +2,12 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
 
 from cache.redis_cache import cache
 from services.genre import GenreService, get_genre_service
+from .schemas import Genre
 
 router = APIRouter()
-
-
-class Genre(BaseModel):
-
-    uuid: UUID
-    name: str
 
 
 @router.get('/',
