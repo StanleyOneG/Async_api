@@ -61,12 +61,14 @@ async def get_person_related_films(
     return related_movies
 
 
-@router.get('/search',
-            summary="Поиск участников",
-            description="Поиск участников",
-            response_description="Список найденных участников",
-            tags=["Полнотекстовый поиск"],
-            response_model=List[Person])
+@router.get(
+    '/search',
+    summary="Поиск участников",
+    description="Поиск участников",
+    response_description="Список найденных участников",
+    tags=["Полнотекстовый поиск"],
+    response_model=List[Person],
+)
 @cache
 async def search_persons(
     request: Request,
@@ -80,6 +82,7 @@ async def search_persons(
         query,
         page,
         size,
+        person_service.elastic_index,
     )
     if not persons:
         raise HTTPException(
@@ -100,12 +103,14 @@ async def search_persons(
     return result
 
 
-@router.get('/{person_id}/film',
-            summary="Кинопроизведения по выбранному участнику",
-            description="Кинопроизведения по выбранному участнику",
-            response_description="Кинопроизведения по выбранному участнику",
-            tags=["Участники"],
-            response_model=List[FilmBase])
+@router.get(
+    '/{person_id}/film',
+    summary="Кинопроизведения по выбранному участнику",
+    description="Кинопроизведения по выбранному участнику",
+    response_description="Кинопроизведения по выбранному участнику",
+    tags=["Участники"],
+    response_model=List[FilmBase],
+)
 @cache
 async def films_by_person(
     request: Request,
@@ -113,7 +118,8 @@ async def films_by_person(
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
 ):
-    person = await person_service.get_by_id(person_id)
+    model = person_service.model
+    person = await person_service.get_by_id(person_id, model)
     if not person:
         return []
     related_films = await get_person_related_films(
@@ -122,12 +128,14 @@ async def films_by_person(
     return related_films
 
 
-@router.get('/{person_id}',
-            summary="Участник",
-            description="Детали участаника",
-            response_description="Детали учатсника",
-            tags=["Участники"],
-            response_model=Person)
+@router.get(
+    '/{person_id}',
+    summary="Участник",
+    description="Детали участаника",
+    response_description="Детали учатсника",
+    tags=["Участники"],
+    response_model=Person,
+)
 @cache
 async def person_detail(
     request: Request,
@@ -135,7 +143,8 @@ async def person_detail(
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
 ):
-    person = await person_service.get_by_id(person_id)
+    model = person_service.model
+    person = await person_service.get_by_id(person_id, model)
     if not person:
         return []
 

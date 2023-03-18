@@ -1,29 +1,42 @@
-import dataclasses
 from functools import lru_cache
 
-from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
-from redis import Redis
 
 from db.elastic import get_elastic
 from models.genre import Genre
-from models.models_mixins import RetrieveDataMixin
+from models.elastic_service import AbstractElasticService
 
 
-@dataclasses.dataclass
-class GenreService(RetrieveDataMixin):
-    redis: Redis
-    elastic: AsyncElasticsearch
-    model: Genre
-    elastic_index: str
+class GenreService:
+    def __init__(
+        self,
+        elastic: AbstractElasticService,
+        elastic_index: str,
+        model: Genre,
+    ):
+        self.elastic = elastic
+        self.elastic_index = elastic_index
+        self.model = model
+
+    async def get_by_id(self, data_id: str, model: Genre):
+        return await self.elastic.get_data_from_elastic(
+            data_id, model, self.elastic_index
+        )
+
+    async def get_list(
+        self,
+    ):
+        return await self.elastic.get_list_from_elastic(
+            elastic_index=self.elastic_index
+        )
 
 
 @lru_cache()
 def get_genre_service(
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+    elastic: AbstractElasticService = Depends(get_elastic),
 ) -> GenreService:
     return GenreService(
         elastic=elastic,
         model=Genre,
-        elastic_index='genres'
+        elastic_index='genres',
     )
