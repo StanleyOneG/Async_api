@@ -15,7 +15,6 @@ from models.person import PersonWithFilms
 class PersonService(RetrieveDataMixin):
     """Represent a persons collection on API side."""
 
-    redis: Redis
     elastic: AsyncElasticsearch
     model: PersonWithFilms
     elastic_index: str
@@ -23,11 +22,9 @@ class PersonService(RetrieveDataMixin):
 
 @lru_cache()
 def get_person_service(
-    redis: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
     return PersonService(
-        redis=redis,
         elastic=elastic,
         model=PersonWithFilms,
         elastic_index='persons',
