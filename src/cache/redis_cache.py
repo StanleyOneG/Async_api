@@ -4,11 +4,8 @@ import uuid
 from functools import wraps
 
 from redis.asyncio import Redis
-from fastapi import Depends
 
 from core.config import REDIS_CACHE_EXPIRE as EXPIRE
-from core.config import REDIS_CACHE_HOST as HOST
-from core.config import REDIS_CACHE_PORT as PORT
 from db.redis import get_redis
 
 
