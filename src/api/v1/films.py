@@ -18,13 +18,13 @@ router = APIRouter()
             response_description="Похожие фильму по жанру",
             tags=["Похожие фильмы"],
             response_model=List[FilmBase],
-)
+            )
 @cache
 async def similar_films(
-    request: Request,
-    film_id: str,
-    film_service: FilmService = Depends(get_film_service),
-    ) -> list[FilmBase]:
+        request: Request,
+        film_id: str,
+        film_service: FilmService = Depends(get_film_service),
+) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
     if not film:
         raise HTTPException(
@@ -32,9 +32,9 @@ async def similar_films(
         )
     genre_ids = [genre.uuid for genre in film.genre]
     result = await asyncio.gather(
-        *[film_service.get_films(sort='imdb_rating', 
-                                 size=10, page=0, 
-                                 filter_genre=genre_id) 
+        *[film_service.get_films(sort='imdb_rating',
+                                 size=10, page=0,
+                                 filter_genre=genre_id)
           for genre_id in genre_ids],
     )
     similars = []
@@ -44,6 +44,7 @@ async def similar_films(
                 similars.append(film)
     return sorted(similars, key=lambda film: film.imdb_rating, reverse=True)
 
+
 @router.get('/search',
             summary="Поиск кинопроизведений",
             description="Полнотекстовый поиск по кинопроизведениям",
@@ -52,13 +53,14 @@ async def similar_films(
             response_model=List[FilmBase])
 @cache
 async def search_films(
-    request: Request,
-    query: str = Query(default=None),
-    common_query_params = Depends(FilmCommonQueryParams),
-    film_service: FilmService = Depends(get_film_service),
+        request: Request,
+        query: str = Query(default=None),
+        common_query_params=Depends(FilmCommonQueryParams),
+        film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await film_service.get_films_search(query, common_query_params)
     return films
+
 
 @router.get("/",
             summary="Кинопроизведения",
@@ -68,13 +70,13 @@ async def search_films(
             response_model=List[FilmBase])
 @cache
 async def films(
-    request: Request,
-    sort: Union[str, None] = Query(
-        default='imdb_rating', alias='-imdb_rating'
-    ),
-    common_query_params = Depends(FilmCommonQueryParams),
-    filter_genre: str = Query(default=None, alias='genre'),
-    film_service: FilmService = Depends(get_film_service),
+        request: Request,
+        sort: Union[str, None] = Query(
+            default='imdb_rating', alias='-imdb_rating'
+        ),
+        common_query_params=Depends(FilmCommonQueryParams),
+        filter_genre: str = Query(default=None, alias='genre'),
+        film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await film_service.get_films(sort,
                                          common_query_params,
@@ -90,8 +92,8 @@ async def films(
             response_model=Film)
 @cache
 async def film_details(
-    request: Request,
-    film_id: str, film_service: FilmService = Depends(get_film_service)
+        request: Request,
+        film_id: str, film_service: FilmService = Depends(get_film_service)
 ) -> Film:
     film = await film_service.get_by_id(film_id, Film)
     if not film:

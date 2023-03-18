@@ -22,7 +22,7 @@ class FilmService:
             filter_genre: str) -> list[FilmBase]:
         films = await self._get_films_from_elastic(
             sort=sort,
-            common_query_params = common_query_params,
+            common_query_params=common_query_params,
             filter_genre=filter_genre
         )
         if not films:
@@ -51,7 +51,11 @@ class FilmService:
             return []
         return films
 
-    async def _get_film_from_elastic(self, film_id: str, model: FilmBase | Film) -> Optional[Film]:
+    async def _get_film_from_elastic(
+            self,
+            film_id: str,
+            model: FilmBase | Film
+    ) -> Optional[Film]:
         try:
             doc = await self.elastic.get('movies', film_id)
         except NotFoundError:
@@ -59,9 +63,10 @@ class FilmService:
         return model(**doc['_source'])
 
     async def _get_films_from_elastic(self,
-                                      sort,
-                                      common_query_params,
-                                      filter_genre) -> list[FilmBase]:
+            sort,
+            common_query_params,
+            filter_genre
+    ) -> list[FilmBase]:
         query_body = {
             "query": {
             }
