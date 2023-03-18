@@ -4,10 +4,12 @@ import uuid
 from functools import wraps
 
 from redis.asyncio import Redis
+from fastapi import Depends
 
 from core.config import REDIS_CACHE_EXPIRE as EXPIRE
 from core.config import REDIS_CACHE_HOST as HOST
 from core.config import REDIS_CACHE_PORT as PORT
+from db.redis import get_redis
 
 
 class UUIDEncoder(json.JSONEncoder):
@@ -21,10 +23,7 @@ def cache(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         request = kwargs['request']
-        redis = Redis(
-            host=HOST,
-            port=PORT,
-        )
+        redis: Redis = get_redis()
         key = str(request.url).split('api')[1]
         value = await redis.get(key)
         if value:
@@ -37,7 +36,7 @@ def cache(func):
         except:
             serialized_value = json.dumps(
                 [dict(v) for v in value if not isinstance(v, uuid.UUID)],
-                cls=UUIDEncoder
+                cls=UUIDEncoder,
             )
             await redis.set(key, serialized_value, EXPIRE)
         logging.info('CACHE MISS')
