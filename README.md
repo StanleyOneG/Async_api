@@ -14,7 +14,7 @@ POSTGRES_OPTIONS="-c search_path=content"
 
 ELASTIC_HOST=elasticsearch # Хост для Elasticsearch 
 ELASTIC_PORT=9200 # Порт для Elasticsearch
-ELASTIC_USERNAME=#<имя пользователя для Elasticsearch>
+ELASTIC_USERNAME=elastic
 ELASTIC_PASSWORD=#<пароль для Elasticsearch>
 
 REDIS_ETL_HOST=redis_etl
