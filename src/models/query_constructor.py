@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 class QueryConstructor(BaseModel):
 
-    page: int
-    size: int
+    page: int | None
+    size: int | None
     query: str | None = Field(default=None)
     sort: str | None = Field(default=None)
     filter_genre: UUID | None = Field(default=None)

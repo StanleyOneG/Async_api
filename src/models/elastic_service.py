@@ -68,7 +68,7 @@ class ElasticService(AbstractElasticService):
         self,
         elastic_index: str,
         **kwargs,
-    ):
+    ) -> list[Genre] | list[FilmBase] | None:
         if elastic_index == 'genres':
             return await self.get_genres_list()
         page = kwargs['page']
@@ -87,7 +87,7 @@ class ElasticService(AbstractElasticService):
         query: str,
         page: int,
         size: int,
-    ):
+    ) -> list | list[FilmBase]:
         query_constructor = QueryConstructor(query=query, page=page, size=size)
         query_body = query_constructor.construct_query('movies')
         try:
@@ -108,7 +108,7 @@ class ElasticService(AbstractElasticService):
         query_body = query_constructor.construct_query('persons')
         try:
             doc = await self.elastic.search(
-                body=query_body, index=self.elastic_index
+                body=query_body, index='persons'
             )
         except NotFoundError:
             return []
@@ -117,7 +117,7 @@ class ElasticService(AbstractElasticService):
             for person in doc['hits']['hits']
         ]
 
-    async def get_genres_list(self):
+    async def get_genres_list(self) -> list[Genre] | None:
         try:
             result = await self.elastic.search(
                 index="genres",
@@ -134,7 +134,7 @@ class ElasticService(AbstractElasticService):
         page,
         size,
         filter_genre,
-    ) -> list[FilmBase]:
+    ) -> list[FilmBase] | list:
         query_constructor = QueryConstructor(
             page=page,
             size=size,

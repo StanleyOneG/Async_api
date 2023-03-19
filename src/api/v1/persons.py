@@ -82,7 +82,7 @@ async def search_persons(
         query,
         page,
         size,
-        person_service.elastic_index,
+        # person_service.elastic_index,
     )
     if not persons:
         raise HTTPException(
