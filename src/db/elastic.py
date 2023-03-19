@@ -5,5 +5,5 @@ from models.elastic_service import ElasticService
 es: Optional[AsyncElasticsearch] = None
 
 # Функция понадобится при внедрении зависимостей
-def get_elastic() -> AsyncElasticsearch:
+def get_elastic() -> ElasticService:
     return ElasticService(es)
