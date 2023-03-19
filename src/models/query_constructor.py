@@ -1,14 +1,16 @@
 from uuid import UUID
 from pydantic import BaseModel, Field
+from api.v1.utils import PaginateQueryParams
 
 
 class QueryConstructor(BaseModel):
-
-    page: int | None
-    size: int | None
+    paginate_query_params: PaginateQueryParams | None
     query: str | None = Field(default=None)
     sort: str | None = Field(default=None)
     filter_genre: UUID | None = Field(default=None)
+
+    class Config:
+            arbitrary_types_allowed = True
 
     def get_persons_query(self):
         return {
@@ -21,11 +23,11 @@ class QueryConstructor(BaseModel):
     def construct_query(self, elastic_index: str):
         query_body = {}
 
-        if self.page:
-            query_body['from'] = self.page
+        if self.paginate_query_params.page_number:
+            query_body['from'] = self.paginate_query_params.page_number
 
-        if self.size:
-            query_body["size"] = self.size
+        if self.paginate_query_params.page_size:
+            query_body["size"] = self.paginate_query_params.page_size
 
         find_query = {
             'persons': self.get_persons_query,
@@ -41,10 +43,10 @@ class QueryConstructor(BaseModel):
             query_body['query']["match_all"] = {}
         if self.sort:
             query_body['sort'] = {"imdb_rating": {"order": "desc"}}
-        if self.size:
-            query_body['size'] = self.size
-        if self.page:
-            query_body['from'] = self.page
+        if self.paginate_query_params.page_size:
+            query_body['size'] = self.paginate_query_params.page_size
+        if self.paginate_query_params.page_number:
+            query_body['from'] = self.paginate_query_params.page_number
         if self.filter_genre:
             query_body['query'] = {
                 "nested": {

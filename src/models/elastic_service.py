@@ -7,6 +7,7 @@ from models.film import Film, FilmBase
 from models.person import PersonWithFilms, PersonBase
 from models.genre import Genre
 from models.query_constructor import QueryConstructor
+from api.v1.utils import PaginateQueryParams
 
 
 class AbstractElasticService(ABC):
@@ -27,8 +28,7 @@ class AbstractElasticService(ABC):
     async def search_data_in_elastic(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params,
         elastic_index: str,
     ):
         pass
@@ -54,15 +54,14 @@ class ElasticService(AbstractElasticService):
     async def search_data_in_elastic(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
         elastic_index: str,
     ):
         call_method = {
             'persons': self.search_persons,
             'movies': self.search_films,
         }
-        return await call_method[elastic_index](query, page, size)
+        return await call_method[elastic_index](query, paginate_query_params)
 
     async def get_list_from_elastic(
         self,
@@ -71,24 +70,23 @@ class ElasticService(AbstractElasticService):
     ) -> list[Genre] | list[FilmBase] | None:
         if elastic_index == 'genres':
             return await self.get_genres_list()
-        page = kwargs['page']
-        size = kwargs['size']
+        paginate_query_params = kwargs['paginate_query_params']
         sort = kwargs['sort']
         filter_genre = kwargs['filter_genre']
         return await self.get_films_list(
             sort=sort,
-            page=page,
-            size=size,
+            paginate_query_params=paginate_query_params,
             filter_genre=filter_genre,
         )
 
     async def search_films(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
     ) -> list | list[FilmBase]:
-        query_constructor = QueryConstructor(query=query, page=page, size=size)
+        query_constructor = QueryConstructor(
+            query=query,
+            paginate_query_params=paginate_query_params)
         query_body = query_constructor.construct_query('movies')
         try:
             doc = await self.elastic.search(body=query_body, index='movies')
@@ -99,12 +97,13 @@ class ElasticService(AbstractElasticService):
     async def search_persons(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
     ) -> list[PersonWithFilms] | list:
         if not query:
             return None
-        query_constructor = QueryConstructor(query=query, page=page, size=size)
+        query_constructor = QueryConstructor(
+            query=query,
+            paginate_query_params=paginate_query_params)
         query_body = query_constructor.construct_query('persons')
         try:
             doc = await self.elastic.search(
@@ -131,13 +130,11 @@ class ElasticService(AbstractElasticService):
     async def get_films_list(
         self,
         sort,
-        page,
-        size,
+        paginate_query_params,
         filter_genre,
     ) -> list[FilmBase] | list:
         query_constructor = QueryConstructor(
-            page=page,
-            size=size,
+            paginate_query_params=paginate_query_params,
             sort=sort,
             filter_genre=filter_genre,
         )

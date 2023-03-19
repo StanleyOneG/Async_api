@@ -5,9 +5,11 @@ from fastapi import Depends
 from db.elastic import get_elastic
 from models.film import Film, FilmBase
 from models.elastic_service import AbstractElasticService
+from api.v1.utils import PaginateQueryParams
 
 
 class FilmService:
+    """Represent a films collection on API side."""
     def __init__(
         self,
         elastic: AbstractElasticService,
@@ -24,27 +26,23 @@ class FilmService:
     async def get_films_search(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
     ) -> list[FilmBase]:
         return await self.elastic.search_data_in_elastic(
             query,
-            page,
-            size,
+            paginate_query_params,
             self.elastic_index,
         )
 
     async def get_films(
         self,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
         sort: str,
         filter_genre: str,
     ):
         return await self.elastic.get_list_from_elastic(
             elastic_index=self.elastic_index,
-            page=page,
-            size=size,
+            paginate_query_params=paginate_query_params,
             sort=sort,
             filter_genre=filter_genre,
         )

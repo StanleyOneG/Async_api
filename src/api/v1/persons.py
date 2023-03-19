@@ -11,6 +11,7 @@ from models.person import PersonWithFilms
 from services.film import Film, FilmBase, FilmService, get_film_service
 from services.persons import PersonService, get_person_service
 from .schemas import Person
+from .utils import PaginateQueryParams
 
 router = APIRouter()
 
@@ -73,15 +74,13 @@ async def get_person_related_films(
 async def search_persons(
     request: Request,
     query: str = Query(default=None),
-    page: int = Query(default=None, alias='page_number', ge=0),
-    size: int = Query(default=None, alias='page_size', ge=1, le=500),
+    paginate_query_params: PaginateQueryParams = Depends(),
     person_service: PersonService = Depends(get_person_service),
     film_service: FilmService = Depends(get_film_service),
 ):
     persons = await person_service.get_persons_search(
         query,
-        page,
-        size,
+        paginate_query_params,
         # person_service.elastic_index,
     )
     if not persons:

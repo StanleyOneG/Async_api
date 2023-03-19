@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from cache.redis_cache import cache
 from services.film import FilmService, get_film_service
 from .schemas import Film, FilmBase
+from .utils import PaginateQueryParams
 
 router = APIRouter()
 
@@ -60,11 +61,10 @@ async def similar_films(
 async def search_films(
     request: Request,
     query: str = Query(default=None),
-    page: int = Query(default=0, alias='page_number', ge=0),
-    size: int = Query(default=50, alias='page_size', ge=1, le=1000),
+    paginate_query_params: PaginateQueryParams = Depends(),
     film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
-    films = await film_service.get_films_search(query, page, size)
+    films = await film_service.get_films_search(query, paginate_query_params)
     return films
 
 
@@ -82,14 +82,12 @@ async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'
     ),
-    page: int = Query(default=0, alias='page_number', ge=0),
-    size: int = Query(default=50, alias='page_size', ge=1, le=1000),
+    paginate_query_params: PaginateQueryParams = Depends(),
     filter_genre: str = Query(default=None, alias='genre'),
     film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await film_service.get_films(
-        page,
-        size,
+        paginate_query_params,
         sort,
         filter_genre,
     )

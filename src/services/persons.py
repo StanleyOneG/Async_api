@@ -5,6 +5,7 @@ from fastapi import Depends
 from db.elastic import get_elastic
 from models.elastic_service import AbstractElasticService
 from models.person import PersonWithFilms, PersonBase
+from api.v1.utils import PaginateQueryParams
 
 
 class PersonService:
@@ -31,11 +32,10 @@ class PersonService:
     async def get_persons_search(
         self,
         query: str,
-        page: int,
-        size: int,
+        paginate_query_params: PaginateQueryParams,
     ) -> list[PersonWithFilms]:
         return await self.elastic.search_data_in_elastic(
-            query, page, size, self.elastic_index
+            query, paginate_query_params, self.elastic_index
         )
 
 
