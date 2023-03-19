@@ -1,0 +1,162 @@
+version: "3.8"
+services:
+  # postgresql:
+  #   image: postgres:14
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ./.env
+  #   volumes:
+  #     - postgres_data:/var/lib/postgressql/data
+  #     - ../../etl_movies/sqlite_to_postgres/movies_database.sql:/docker-entrypoint-initdb.d/movies_database.sql 
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -d $POSTGRES_DB -U $POSTGRES_USER"]
+  #     interval: 3s
+  #     timeout: 20s
+  #     retries: 5
+  #     start_period: 80s 
+  #   container_name: postgresql
+
+  # sqlite_loader:
+  #   build:
+  #     context: ../../etl_movies/sqlite_to_postgres
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     postgresql:
+  #       condition: service_healthy
+  #   container_name: sqlite_loader
+  
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    environment:
+      - discovery.type=single-node
+      - node.name=es01
+      - bootstrap.memory_lock=true
+      - cluster.name=elasticsearch
+      - xpack.security.enabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    restart: unless-stopped
+    ports:
+      - 9200:9200
+      - 9300:9300
+   # expose:
+   #   - 9200
+  #    - 9300
+    env_file:
+      - ./.env
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data:rw
+    # depends_on:
+    #   sqlite_loader:
+    #     condition: service_completed_successfully
+    healthcheck:
+      test: "curl --user ${ELASTIC_USERNAME}:${ELASTIC_PASSWORD} -XGET 'http://${ELASTIC_HOST}:${ELASTIC_PORT}'"
+      interval: 10s
+      timeout: 80s
+      retries: 5
+      start_period: 30s
+    container_name: elasticsearch
+
+  # redis_etl:
+  #   image: redis:latest
+  #   volumes:
+  #     - redis_etl_data:/data:rw
+  #   depends_on:
+  #     postgresql:
+  #       condition: service_healthy
+  #   command: >
+  #     --save 60 1
+  #   container_name: redis_etl
+  
+  # elastic_loader:
+  #   build:
+  #     context: ../../etl_movies/postgres_to_es
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     sqlite_loader:
+  #       condition: service_completed_successfully
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     postgresql:
+  #       condition: service_healthy
+  #     redis_etl:
+  #       condition: service_started
+  #   container_name: elastic_loader
+
+  # elastic_genres_loader:
+  #   build:
+  #     context: ../../etl_genres/
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     sqlite_loader:
+  #       condition: service_completed_successfully
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     postgresql:
+  #       condition: service_healthy
+  #     redis_etl:
+  #       condition: service_started
+  #   container_name: elastic_genres_loader
+
+  # elastic_persons_loader:
+  #   build:
+  #     context: ../../etl_persons
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     sqlite_loader:
+  #       condition: service_completed_successfully
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     postgresql:
+  #       condition: service_healthy
+  #     redis_etl:
+  #       condition: service_started
+  #   container_name: elastic_persons_loader
+
+  api:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      redis_cache:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+    # expose:
+    #   - 8000
+    container_name: api-tests
+
+  redis_cache:
+    image: redis:latest
+    volumes:
+      - redis_cache_data:/data:rw
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+    # expose:
+    #   - 6379
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: >
+      --save 60 1
+    container_name: redis_cache
+
+volumes:
+  # postgres_data:
+  elasticsearch_data:
+  # redis_etl_data:
+  redis_cache_data:
