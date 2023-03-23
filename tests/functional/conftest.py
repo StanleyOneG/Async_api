@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import json
 from typing import Generator
 import backoff
@@ -5,12 +6,11 @@ from elasticsearch import AsyncElasticsearch, Elasticsearch, TransportError
 from pydantic import BaseModel, FilePath
 import pytest
 from redis import Redis
-from functional.settings import test_settings
+from functional.settings import test_settings, test_indexes, index_names
 import logging
 
 
 logger = logging.getLogger('tests')
-
 
 
 class ElasticIndex(BaseModel):
@@ -18,15 +18,13 @@ class ElasticIndex(BaseModel):
 
     settings: dict
     mappings: dict
-    index = test_settings.es_index
-
 
 
 @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
 async def create_index(
-    
-    es_schema: FilePath, es_client: AsyncElasticsearch
-
+    es_index: str,
+    es_schema: FilePath,
+    es_client: AsyncElasticsearch,
 ) -> None:
     """Create Elasticsearch index if it does not exist."""
     with open(es_schema, 'r') as file:
@@ -35,11 +33,10 @@ async def create_index(
         )
 
     index = ElasticIndex.parse_raw(str(data).replace("'", '"'))
-    # index = ElasticIndex.parse_obj(es_schema)
 
     try:
         await es_client.indices.create(
-            index='movies',
+            index=es_index,
             settings=index.settings,
             mappings=index.mappings,
         )
@@ -48,9 +45,7 @@ async def create_index(
 
 
 def get_es_bulk_query(
-    
     data: list[dict], index: str, id_field: str
-
 ) -> list[dict]:
     bulk_query = []
     for row in data:
@@ -86,12 +81,12 @@ async def es_client(request) -> Generator[AsyncElasticsearch, None, None]:
         use_ssl=False,
         http_auth=(test_settings.es_user, test_settings.es_password),
     )
-    if not await es_client.indices.exists(index=test_settings.es_index):
-        await create_index(test_settings.es_index_mapping, es_client)
-        # logger.info('Index created')
+    async for index_name, index_map in test_indexes:
+        if not await es_client.indices.exists(index=index_name):
+            await create_index(index_name, index_map, es_client)
     yield es_client
-    # await es_client.indices.delete(index=test_settings.es_index)
     await es_client.close()
+
 
 @pytest.fixture(scope='module', autouse=True)
 def cleanup(request):
@@ -103,24 +98,23 @@ def cleanup(request):
             http_auth=(test_settings.es_user, test_settings.es_password),
         )
         with es_client as client:
-            client.indices.delete(index=test_settings.es_index)
+            for index_name in index_names:
+                if client.indices.exists(index=index_name):
+                    client.indices.delete(index=index_name)
+
     request.addfinalizer(delete_index)
+
 
 @pytest.fixture
 def es_write_data(es_client):
     async def inner(data: list[dict]):
         async for client in es_client:
             bulk_query = get_es_bulk_query(
-                data, test_settings.es_index, test_settings.es_id_field
-            )
-            bulk_query = get_es_bulk_query(
-                data, test_settings.es_index, test_settings.es_id_field
+                data, test_settings.es_movies_index, test_settings.es_id_field
             )
             str_query = '\n'.join(bulk_query) + '\n'
             response = await client.bulk(body=str_query, refresh=True)
-            # es_client.close()
             if response['errors']:
                 raise Exception('Ошибка записи данных в Elasticsearch')
 
     return inner
-

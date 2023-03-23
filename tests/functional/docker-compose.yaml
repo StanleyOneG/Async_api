@@ -47,7 +47,7 @@ services:
     env_file:
       - ./.env
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data:rw
+      - test_elasticsearch_data:/usr/share/elasticsearch/data:rw
     # depends_on:
     #   sqlite_loader:
     #     condition: service_completed_successfully
@@ -57,7 +57,7 @@ services:
       timeout: 80s
       retries: 5
       start_period: 30s
-    container_name: elasticsearch
+    container_name: test_elasticsearch
 
   # redis_etl:
   #   image: redis:latest
@@ -121,7 +121,7 @@ services:
   #       condition: service_started
   #   container_name: elastic_persons_loader
 
-  api:
+  test_api:
     build:
       context: ../../src
       dockerfile: Dockerfile
@@ -141,7 +141,7 @@ services:
   redis_cache:
     image: redis:latest
     volumes:
-      - redis_cache_data:/data:rw
+      - test_redis_cache_data:/data:rw
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
@@ -153,10 +153,10 @@ services:
         condition: service_healthy
     command: >
       --save 60 1
-    container_name: redis_cache
+    container_name: test_redis_cache
 
 volumes:
   # postgres_data:
-  elasticsearch_data:
+  test_elasticsearch_data:
   # redis_etl_data:
-  redis_cache_data:
+  test_redis_cache_data:

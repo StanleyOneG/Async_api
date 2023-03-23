@@ -1,14 +1,12 @@
-
-from typing import Any, Generator
-import uuid
 import logging
+import uuid
 
 import aiohttp
 import pytest
-
 from functional.settings import test_settings
 
 logger = logging.getLogger('tests')
+
 
 @pytest.fixture
 def es_data() -> list[dict]:
@@ -21,9 +19,7 @@ def es_data() -> list[dict]:
             ],
             'title': 'The Star',
             'description': 'New World',
-            'directors': [
-                {'uuid': '1234', 'full_name': 'John Doe'}  
-            ],
+            'directors': [{'uuid': '1234', 'full_name': 'John Doe'}],
             'actors_names': ['Ann', 'Bob'],
             'writers_names': ['Ben', 'Howard'],
             'actors': [
@@ -40,7 +36,6 @@ def es_data() -> list[dict]:
     return es_data
 
 
-
 @pytest.fixture
 def make_get_request(client_session):
     async def inner(query_data: dict):
@@ -48,28 +43,29 @@ def make_get_request(client_session):
         async for session in client_session:
             response = await session.get(url, params=query_data)
             return response
-    return inner 
+
+    return inner
+
 
 @pytest.mark.parametrize(
     'query_data, expected_answer',
     [
         (
-                {'query': 'The Star'},
-                {'status': 200, 'length': 50},
+            {'query': 'The Star'},
+            {'status': 200, 'length': 50},
         ),
         (
-                {'query': 'Mashed potato'},
-                {'status': 200, 'length': 0},
-        )
-    ]
+            {'query': 'Mashed potato'},
+            {'status': 200, 'length': 0},
+        ),
+    ],
 )
 @pytest.mark.asyncio
-async def test_search(es_data: list[dict], es_write_data, query_data: dict, expected_answer: dict):
-
-    # 1. Генерируем данные для ES
+async def test_search(
+    es_data: list[dict], es_write_data, query_data: dict, expected_answer: dict
+):
 
     await es_write_data(es_data)
-    # response = await make_get_request(query_data)
     session = aiohttp.ClientSession()
     url = test_settings.service_url + '/api/v1/films/search'
     async with session.get(url, params=query_data) as response:
@@ -77,7 +73,6 @@ async def test_search(es_data: list[dict], es_write_data, query_data: dict, expe
         headers = response.headers
         status = response.status
     await session.close()
-
 
     assert status == expected_answer['status']
     assert len(length) == expected_answer['length']
