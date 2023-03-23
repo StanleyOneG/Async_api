@@ -36,13 +36,6 @@ def es_data() -> list[dict]:
     return es_data
 
 
-@pytest.fixture(scope='function')
-async def get_client_session():
-    session = aiohttp.ClientSession()
-    yield session
-    session.close()
-
-
 @pytest.fixture
 def make_get_request(get_client_session):
     async def inner(query_data: dict):

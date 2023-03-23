@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import json
 from typing import Generator
+import aiohttp
 import backoff
 from elasticsearch import AsyncElasticsearch, Elasticsearch, TransportError
 from pydantic import BaseModel, FilePath
@@ -71,6 +72,13 @@ def redis_client() -> Generator[Redis, None, None]:
     yield
     redis_client.flushall()
     redis_client.close()
+
+
+@pytest.fixture(scope='function')
+async def get_client_session():
+    session = aiohttp.ClientSession()
+    yield session
+    session.close()
 
 
 @pytest.fixture(scope='session')
