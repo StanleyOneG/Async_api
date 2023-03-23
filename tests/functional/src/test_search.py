@@ -36,11 +36,18 @@ def es_data() -> list[dict]:
     return es_data
 
 
+@pytest.fixture(scope='function')
+async def get_client_session():
+    session = aiohttp.ClientSession()
+    yield session
+    session.close()
+
+
 @pytest.fixture
-def make_get_request(client_session):
+def make_get_request(get_client_session):
     async def inner(query_data: dict):
         url = test_settings.service_url + '/api/v1/films/search'
-        async for session in client_session:
+        async for session in get_client_session:
             response = await session.get(url, params=query_data)
             return response
 
@@ -62,17 +69,18 @@ def make_get_request(client_session):
 )
 @pytest.mark.asyncio
 async def test_search(
-    es_data: list[dict], es_write_data, query_data: dict, expected_answer: dict
+    es_write_data,
+    make_get_request,
+    es_data: list[dict],
+    query_data: dict,
+    expected_answer: dict,
 ):
 
     await es_write_data(es_data)
-    session = aiohttp.ClientSession()
-    url = test_settings.service_url + '/api/v1/films/search'
-    async with session.get(url, params=query_data) as response:
-        length = await response.json()
-        headers = response.headers
-        status = response.status
-    await session.close()
+    response = await make_get_request(query_data)
+    length = await response.json()
+    headers = response.headers
+    status = response.status
 
     assert status == expected_answer['status']
     assert len(length) == expected_answer['length']
