@@ -11,18 +11,17 @@ genres = [
     "Adventure",
     "Drama",
     "Romance",
-    "Family",
-    "Fantasy",
-    "Documentary",
-    "Biography",
-    "War",
-    "Mystery",
 ]
 
 film_work_names = DynamicProvider(
     provider_name='film_name', elements=film_names
 )
 genre_names = DynamicProvider(provider_name='genre_name', elements=genres)
+
+fake = Faker(['en_US'])
+Faker.seed(5)
+fake.add_provider(film_work_names)
+fake.add_provider(genre_names)
 
 fake = Faker(['en_US'])
 Faker.seed(5)
