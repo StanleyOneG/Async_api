@@ -76,12 +76,11 @@ def redis_client() -> Generator[Redis, None, None]:
 
 @pytest.fixture(scope='function')
 async def get_client_session():
-    session = aiohttp.ClientSession()
-    yield session
-    session.close()
+    async with aiohttp.ClientSession() as session:
+        yield session
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture()
 async def es_client(request) -> Generator[AsyncElasticsearch, None, None]:
     es_client = AsyncElasticsearch(
         test_settings.es_host,
@@ -115,10 +114,10 @@ def cleanup(request):
 
 @pytest.fixture
 def es_write_data(es_client):
-    async def inner(data: list[dict]):
+    async def inner(data: list[dict], index: str):
         async for client in es_client:
             bulk_query = get_es_bulk_query(
-                data, test_settings.es_movies_index, test_settings.es_id_field
+                data, index, test_settings.es_id_field
             )
             str_query = '\n'.join(bulk_query) + '\n'
             response = await client.bulk(body=str_query, refresh=True)
