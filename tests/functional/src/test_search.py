@@ -69,7 +69,7 @@ async def test_search(
     expected_answer: dict,
 ):
 
-    await es_write_data(es_data)
+    await es_write_data(es_data, test_settings.es_movies_index)
     response = await make_get_request(query_data)
     length = await response.json()
     headers = response.headers

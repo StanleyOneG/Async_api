@@ -41,9 +41,9 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
-   # expose:
-   #   - 9200
-  #    - 9300
+    # expose:
+    #  - 9200
+    #  - 9300
     env_file:
       - ./.env
     volumes:
@@ -136,6 +136,12 @@ services:
       - 8000:8000
     # expose:
     #   - 8000
+    healthcheck:
+      test: curl -XGET http://test_api:8000/api/openapi
+      interval: 8s
+      timeout: 60s
+      retries: 5
+      start_period: 80s 
     container_name: api-tests
 
   redis_cache:
@@ -144,16 +150,31 @@ services:
       - test_redis_cache_data:/data:rw
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - 6379:6379
-    # expose:
-    #   - 6379
+    # ports:
+    #   - 6379:6379
+    expose:
+      - 6379
     depends_on:
       elasticsearch:
         condition: service_healthy
     command: >
       --save 60 1
     container_name: test_redis_cache
+
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis_cache:
+        condition: service_started
+      test_api:
+        condition: service_healthy
+    container_name: tests
 
 volumes:
   # postgres_data:
