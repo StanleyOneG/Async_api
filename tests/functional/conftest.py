@@ -29,9 +29,9 @@ class ElasticIndex(BaseModel):
 
 @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
 async def create_index(
-        es_index: str,
-        es_schema: FilePath,
-        es_client: AsyncElasticsearch,
+    es_index: str,
+    es_schema: FilePath,
+    es_client: AsyncElasticsearch,
 ) -> None:
     """Create Elasticsearch index if it does not exist."""
     with open(es_schema, 'r') as file:
@@ -52,7 +52,7 @@ async def create_index(
 
 
 def get_es_bulk_query(
-        data: list[dict], index: str, id_field: str
+    data: list[dict], index: str, id_field: str
 ) -> list[dict]:
     bulk_query = []
     for row in data:
