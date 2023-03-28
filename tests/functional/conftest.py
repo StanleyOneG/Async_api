@@ -7,8 +7,9 @@ from elasticsearch import AsyncElasticsearch, Elasticsearch, TransportError
 from pydantic import BaseModel, FilePath
 import pytest
 from redis import Redis
-from functional.settings import test_settings, test_indexes, index_names
+from .settings import test_settings, test_indexes, index_names
 import logging
+import uuid
 
 
 logger = logging.getLogger('tests')
@@ -126,3 +127,31 @@ def es_write_data(es_client):
                 raise Exception('Ошибка записи данных в Elasticsearch')
 
     return inner
+
+
+@pytest.fixture
+def es_movies_data() -> list[dict]:
+    es_data = [
+        {
+            'uuid': str(uuid.uuid4()),
+            'imdb_rating': 8.5,
+            'genre': [
+                {'uuid': str(uuid.uuid4()), 'name': 'Sci-Fi'},
+            ],
+            'title': 'The Star',
+            'description': 'New World',
+            'directors': [{'uuid': '1234', 'full_name': 'John Doe'}],
+            'actors_names': ['Ann', 'Bob'],
+            'writers_names': ['Ben', 'Howard'],
+            'actors': [
+                {'uuid': str(uuid.uuid4()), 'full_name': 'Ann'},
+                {'uuid': str(uuid.uuid4()), 'full_name': 'Bob'},
+            ],
+            'writers': [
+                {'uuid': str(uuid.uuid4()), 'full_name': 'Ben'},
+                {'uuid': str(uuid.uuid4()), 'full_name': 'Howard'},
+            ],
+        }
+        for _ in range(60)
+    ]
+    return es_data
