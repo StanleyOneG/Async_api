@@ -1,6 +1,7 @@
 from uuid import UUID
 from pydantic import BaseSettings, Field, FilePath
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -15,13 +16,14 @@ class TestSettings(BaseSettings):
     es_genres_index: str = Field(default='genres')
     es_id_field: str = Field(..., env='ES_ID')
     es_movies_index_mapping: FilePath = Field(
-        default='testdata/es_movies_schema.json'
+        default=Path.cwd().parent.joinpath('testdata/es_movies_schema.json')
+
     )
     es_persons_index_mapping: FilePath = Field(
-        default='testdata/es_persons_schema.json'
+        default=Path.cwd().parent.joinpath('testdata/es_persons_schema.json')
     )
     es_genres_index_mapping: FilePath = Field(
-        default='testdata/es_genres_schema.json'
+        default=Path.cwd().parent.joinpath('testdata/es_genres_schema.json')
     )
 
     redis_host: str = Field(..., env='REDIS_TEST_HOST')
