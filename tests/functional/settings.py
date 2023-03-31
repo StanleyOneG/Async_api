@@ -16,14 +16,19 @@ class TestSettings(BaseSettings):
     es_genres_index: str = Field(default='genres')
     es_id_field: str = Field(..., env='ES_ID')
     es_movies_index_mapping: FilePath = Field(
-        default=Path.cwd().parent.joinpath('testdata/es_movies_schema.json')
-
+        default=Path.cwd().parent.joinpath(
+            'functional/testdata/es_movies_schema.json'
+        )
     )
     es_persons_index_mapping: FilePath = Field(
-        default=Path.cwd().parent.joinpath('testdata/es_persons_schema.json')
+        default=Path.cwd().parent.joinpath(
+            'functional/testdata/es_persons_schema.json'
+        )
     )
     es_genres_index_mapping: FilePath = Field(
-        default=Path.cwd().parent.joinpath('testdata/es_genres_schema.json')
+        default=Path.cwd().parent.joinpath(
+            'functional/testdata/es_genres_schema.json'
+        )
     )
 
     redis_host: str = Field(..., env='REDIS_CACHE_API_HOST')

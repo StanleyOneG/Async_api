@@ -1,14 +1,8 @@
-import random
-from faker import Faker
-import uuid
 import logging
+
 import pytest
+from functional.conftest import FILM_UUID, persons_names, persons_uuids
 from functional.settings import test_settings
-from functional.conftest import persons_uuids, persons_names
-import pytest
-from functional.utils.helpers import fake
-from functional.settings import test_settings
-from functional.conftest import FILM_UUID
 
 logger = logging.getLogger('test_persons')
 
@@ -16,11 +10,11 @@ logger = logging.getLogger('test_persons')
 @pytest.mark.asyncio
 async def test_get_person(
     es_write_data,
-    make_film_get_request,
+    make_person_get_request,
     persons_data,
 ):
     await es_write_data(persons_data, test_settings.es_persons_index)
-    response = await make_film_get_request()
+    response = await make_person_get_request()
     body = await response.json()
     status = response.status
 
@@ -43,7 +37,9 @@ async def test_get_persons_film(es_write_data, make_film_request, film_data):
 
 @pytest.mark.asyncio
 async def test_search_person(make_film_search_request):
-    response = await make_film_search_request('Ivan')
+    response = await make_film_search_request(
+        'Ivan', through_person_endpoint=True
+    )
     body = await response.json()
     status = response.status
 

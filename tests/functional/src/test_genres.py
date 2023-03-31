@@ -1,17 +1,17 @@
 import logging
 
 import pytest
+from functional.conftest import genres_names, genres_uuids
 from functional.settings import test_settings
-from functional.conftest import genres_uuids, genres_names
 
 logger = logging.getLogger('test_genres')
 
 
 @pytest.mark.asyncio
 async def test_genres_id(
-        es_write_data,
-        make_genre_id_request,
-        genres_data,
+    es_write_data,
+    make_genre_id_request,
+    genres_data,
 ):
     await es_write_data(genres_data, test_settings.es_genres_index)
     response = await make_genre_id_request()
@@ -25,9 +25,9 @@ async def test_genres_id(
 
 @pytest.mark.asyncio
 async def test_genres(
-        es_write_data,
-        make_genres_request,
-        genres_data,
+    es_write_data,
+    make_genres_request,
+    genres_data,
 ):
     await es_write_data(genres_data, test_settings.es_genres_index)
     response = await make_genres_request()

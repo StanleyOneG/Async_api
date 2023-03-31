@@ -1,17 +1,15 @@
-from dataclasses import dataclass
 import json
+import logging
 from typing import Generator
+
 import aiohttp
 import backoff
-from elasticsearch import AsyncElasticsearch, Elasticsearch, TransportError
-from pydantic import BaseModel, FilePath
 import pytest
-from redis import Redis
-from .settings import test_settings, test_indexes, index_names
-import logging
+from elasticsearch import AsyncElasticsearch, Elasticsearch, TransportError
+from functional.settings import index_names, test_indexes, test_settings
 from functional.utils.helpers import fake
-import uuid
-
+from pydantic import BaseModel, FilePath
+from redis import Redis
 
 logger = logging.getLogger('tests')
 
@@ -120,7 +118,7 @@ def cleanup(request):
                 if client.indices.exists(index=index_name):
                     client.indices.delete(index=index_name)
 
-    # request.addfinalizer(delete_index)
+    request.addfinalizer(delete_index)
 
 
 @pytest.fixture
@@ -198,14 +196,6 @@ def persons_data():
 
 @pytest.fixture
 def film_data():
-    writers = {
-        'uuid': [str(fake.uuid4()) for _ in range(1)],
-        'name': [fake.name for _ in range(1)],
-    }
-    actor = {
-        'uuid': str(fake.uuid4()),
-        'name': fake.name(),
-    }
     es_data = [
         {
             'uuid': FILM_UUID,
@@ -237,7 +227,18 @@ def film_data():
 
 
 @pytest.fixture
-def make_film_get_request(get_client_session):
+def make_get_request(get_client_session):
+    async def inner(**kwargs):
+        url = test_settings.service_url + kwargs.get('endpoint_url')
+        async for session in get_client_session:
+            response = await session.get(url, params=kwargs.get('query_data'))
+            return response
+
+    return inner
+
+
+@pytest.fixture
+def make_person_get_request(get_client_session):
     async def inner():
         uuid_to_get = persons_uuids[3]
         url = test_settings.service_url + f'/api/v1/persons/{uuid_to_get}'
@@ -262,11 +263,16 @@ def make_film_request(get_client_session):
 
 @pytest.fixture
 def make_film_search_request(get_client_session):
-    async def inner(data_to_search):
+    async def inner(
+        data_to_search: str, through_person_endpoint: bool = False
+    ):
         params = {
             'query': data_to_search,
         }
-        url = test_settings.service_url + '/api/v1/persons/search'
+        if through_person_endpoint:
+            url = test_settings.service_url + '/api/v1/persons/search'
+        else:
+            url = test_settings.service_url + '/api/v1/films/search'
         async for session in get_client_session:
             response = await session.get(url, params=params)
             return response
@@ -278,23 +284,25 @@ def make_film_search_request(get_client_session):
 def es_movies_data() -> list[dict]:
     es_data = [
         {
-            'uuid': str(uuid.uuid4()),
+            'uuid': str(fake.uuid4()),
             'imdb_rating': 8.5,
             'genre': [
-                {'uuid': str(uuid.uuid4()), 'name': 'Sci-Fi'},
+                {'uuid': str(fake.uuid4()), 'name': 'Sci-Fi'},
             ],
             'title': 'The Star',
             'description': 'New World',
-            'directors': [{'uuid': '1234', 'full_name': 'John Doe'}],
+            'directors': [
+                {'uuid': str(fake.uuid4()), 'full_name': 'John Doe'}
+            ],
             'actors_names': ['Ann', 'Bob'],
             'writers_names': ['Ben', 'Howard'],
             'actors': [
-                {'uuid': str(uuid.uuid4()), 'full_name': 'Ann'},
-                {'uuid': str(uuid.uuid4()), 'full_name': 'Bob'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Ann'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Bob'},
             ],
             'writers': [
-                {'uuid': str(uuid.uuid4()), 'full_name': 'Ben'},
-                {'uuid': str(uuid.uuid4()), 'full_name': 'Howard'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Ben'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Howard'},
             ],
         }
         for _ in range(60)

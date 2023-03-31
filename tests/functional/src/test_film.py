@@ -2,41 +2,14 @@ import logging
 import random
 
 import pytest
-from tests.functional.settings import test_settings
+from functional.settings import test_settings
 
 logger = logging.getLogger('tests')
 
 
-@pytest.fixture
-def make_get_request(get_client_session):
-    async def inner(**kwargs):
-        url = test_settings.service_url + kwargs.get('endpoint_url')
-        async for session in get_client_session:
-            response = await session.get(url, params=kwargs.get('query_data'))
-            return response
-
-    return inner
-
-
-@pytest.fixture
-def make_search_request(get_client_session):
-    async def inner(data_to_search):
-        params = {
-            'query': data_to_search,
-        }
-        url = test_settings.service_url + '/api/v1/films/search'
-        async for session in get_client_session:
-            response = await session.get(url, params=params)
-            return response
-
-    return inner
-
-
 @pytest.mark.asyncio
-async def test_film_by_id(es_write_data,
-                          es_movies_data,
-                          make_get_request):
-    await es_write_data(es_movies_data)
+async def test_film_by_id(es_write_data, es_movies_data, make_get_request):
+    await es_write_data(es_movies_data, test_settings.es_movies_index)
     random_film = es_movies_data[random.randrange(0, len(es_movies_data))]
     random_film_id = random_film.get('uuid')
     endpoint_url = '/api/v1/films/' + random_film_id
@@ -46,14 +19,14 @@ async def test_film_by_id(es_write_data,
 
     assert status == 200
     assert film_details_response.get('title') == random_film.get('title')
-    assert len(film_details_response.get('actors')) == len(random_film.get('actors'))
+    assert len(film_details_response.get('actors')) == len(
+        random_film.get('actors')
+    )
 
 
 @pytest.mark.asyncio
-async def test_all_films(es_write_data,
-                         es_movies_data,
-                         make_get_request):
-    await es_write_data(es_movies_data)
+async def test_all_films(es_write_data, es_movies_data, make_get_request):
+    # await es_write_data(es_movies_data, test_settings.es_movies_index)
     endpoint_url = '/api/v1/films/'
     response = await make_get_request(endpoint_url=endpoint_url)
     length = await response.json()
@@ -64,10 +37,10 @@ async def test_all_films(es_write_data,
 
 
 @pytest.mark.asyncio
-async def test_all_films_query_params(es_write_data,
-                                      es_movies_data,
-                                      make_get_request):
-    await es_write_data(es_movies_data)
+async def test_all_films_query_params(
+    es_write_data, es_movies_data, make_get_request
+):
+    # await es_write_data(es_movies_data, test_settings.es_movies_index)
     endpoint_url = '/api/v1/films?page_size=5'
     response = await make_get_request(endpoint_url=endpoint_url)
     length = await response.json()
@@ -75,18 +48,18 @@ async def test_all_films_query_params(es_write_data,
 
 
 @pytest.mark.asyncio
-async def test_non_existing_film(es_write_data,
-                                 es_movies_data,
-                                 make_get_request):
-    await es_write_data(es_movies_data)
+async def test_non_existing_film(
+    es_write_data, es_movies_data, make_get_request
+):
+    # await es_write_data(es_movies_data, test_settings.es_movies_index)
     endpoint_url = '/api/v1/films/i-will-hack-you'
     response = await make_get_request(endpoint_url=endpoint_url)
-    assert response.status == 404
+    assert response.status == 422  # The value is not a valid uuid
 
 
 @pytest.mark.asyncio
-async def test_search_film(make_search_request):
-    response = await make_search_request('The Star')
+async def test_search_film(make_film_search_request):
+    response = await make_film_search_request('The Star')
     body = await response.json()
     status = response.status
 
