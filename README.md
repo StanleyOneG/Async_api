@@ -79,3 +79,13 @@ http://localhost/api/openapi
  - Список жанров: http://localhost/api/v1/genres
  - Детали жанра: http://localhost/api/v1/genres/genre_uuid/
 
+**Тесты**
+
+Тесты работы api реализованы с помощью библиотеки pytest. 
+Для запуска функциональных тестов необходимо:
+
+1. В папке `tests/functional` создать `.env` файл (пример расположен в файле `tests/functional/.env.example`) 
+2. В консоли перейти в директорию `tests/functional` и выполнить команду `docker-compose up --build --exit-code-from tester`. 
+
+*Функционал `wait-for-it` для контейнеров реализован методами docker-compose healthcheck в соответствующем файле `tests/functional/docker-compose.yml`*
+
