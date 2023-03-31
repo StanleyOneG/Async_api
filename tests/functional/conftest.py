@@ -21,6 +21,9 @@ genres_names = [fake.genre_name() for _ in range(10)]
 persons_uuids = [fake.uuid4() for _ in range(10)]
 persons_names = [fake.name() for _ in range(10)]
 
+FILM_UUID = str(fake.uuid4())
+PERSON_UUID = str(fake.uuid4())
+
 
 class ElasticIndex(BaseModel):
     """Class for elasticsearch index settings validation."""
@@ -117,7 +120,7 @@ def cleanup(request):
                 if client.indices.exists(index=index_name):
                     client.indices.delete(index=index_name)
 
-    request.addfinalizer(delete_index)
+    # request.addfinalizer(delete_index)
 
 
 @pytest.fixture
@@ -183,9 +186,10 @@ def persons_data():
     es_data.extend(
         [
             {
-                'uuid': '56b541ab-4d66-4021-8708-397762bff2d4',
+                # 'uuid': '56b541ab-4d66-4021-8708-397762bff2d4',
+                'uuid': PERSON_UUID,
                 'full_name': 'Ivan Ivanov',
-                'film_work_ids': ['b92ef010-5e4c-4fd0-99d6-41b6456272cd'],
+                'film_work_ids': [FILM_UUID],
             }
         ]
     )
@@ -194,28 +198,38 @@ def persons_data():
 
 @pytest.fixture
 def film_data():
+    writers = {
+        'uuid': [str(fake.uuid4()) for _ in range(1)],
+        'name': [fake.name for _ in range(1)],
+    }
+    actor = {
+        'uuid': str(fake.uuid4()),
+        'name': fake.name(),
+    }
     es_data = [
         {
-            'uuid': 'b92ef010-5e4c-4fd0-99d6-41b6456272cd',
+            'uuid': FILM_UUID,
             'imdb_rating': 8.5,
             'genre': [
                 {'uuid': str(fake.uuid4()), 'name': 'Sci-Fi'},
             ],
             'title': 'Terminator',
             'description': 'New World',
-            'directors': [{'uuid': '1234', 'full_name': 'John Doe'}],
+            'directors': [
+                {'uuid': str(fake.uuid4()), 'full_name': 'John Doe'}
+            ],
             'actors_names': ['Ivan Ivanov', 'Bob'],
             'writers_names': ['Ben', 'Howard'],
             'actors': [
                 {
-                    'uuid': '56b541ab-4d66-4021-8708-397762bff2d4',
+                    'uuid': PERSON_UUID,
                     'full_name': 'Ivan Ivanov',
                 },
-                {'uuid': '222', 'full_name': 'Bob'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Bob'},
             ],
             'writers': [
-                {'uuid': '333', 'full_name': 'Ben'},
-                {'uuid': '444', 'full_name': 'Howard'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Ben'},
+                {'uuid': str(fake.uuid4()), 'full_name': 'Howard'},
             ],
         }
     ]
@@ -237,7 +251,7 @@ def make_film_get_request(get_client_session):
 @pytest.fixture
 def make_film_request(get_client_session):
     async def inner():
-        uuid_to_get = '56b541ab-4d66-4021-8708-397762bff2d4'
+        uuid_to_get = PERSON_UUID
         url = test_settings.service_url + f'/api/v1/persons/{uuid_to_get}/film'
         async for session in get_client_session:
             response = await session.get(url)

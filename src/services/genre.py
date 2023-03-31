@@ -1,4 +1,5 @@
 from functools import lru_cache
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -18,7 +19,7 @@ class GenreService:
         self.elastic_index = elastic_index
         self.model = model
 
-    async def get_by_id(self, data_id: str, model: Genre):
+    async def get_by_id(self, data_id: UUID, model: Genre):
         return await self.elastic.get_data_from_elastic(
             data_id, model, self.elastic_index
         )

@@ -18,10 +18,10 @@ class FilmBase(ObjectModel):
 
 class Film(FilmBase):
     description: str | None
-    genre: Union[List[Genre], None]
-    actors: Union[List[PersonBase], None]
-    writers: Union[List[PersonBase], None]
-    directors: Union[List[PersonBase], None]
+    genre: Union[List[Genre], Genre, None]
+    actors: Union[List[PersonBase], PersonBase, None]
+    writers: Union[List[PersonBase], PersonBase, None]
+    directors: Union[List[PersonBase], PersonBase, None]
 
 
 class Genre(ObjectModel):

@@ -26,7 +26,7 @@ class TestSettings(BaseSettings):
         default=Path.cwd().parent.joinpath('testdata/es_genres_schema.json')
     )
 
-    redis_host: str = Field(..., env='REDIS_TEST_HOST')
+    redis_host: str = Field(..., env='REDIS_CACHE_API_HOST')
     service_url: str = Field(..., env='SERVICE_URL')
 
 

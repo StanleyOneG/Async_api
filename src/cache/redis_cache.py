@@ -25,7 +25,8 @@ def cache(func):
         value = await redis.get(key)
         if value:
             logging.info('CACHE HIT')
-            value_dict = json.loads(value)
+            value_json = value.decode('utf-8')
+            value_dict = json.loads(value_json)
             return value_dict
         value = await func(*args, **kwargs)
         try:
@@ -35,7 +36,7 @@ def cache(func):
                 [dict(v) for v in value if not isinstance(v, uuid.UUID)],
                 cls=UUIDEncoder,
             )
-            await redis.set(key, serialized_value, EXPIRE)
+            await redis.set(key, serialized_value.encode('utf-8'), EXPIRE)
         logging.info('CACHE MISS')
         return value
 

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -10,6 +11,7 @@ from api.v1.utils import PaginateQueryParams
 
 class FilmService:
     """Represent a films collection on API side."""
+
     def __init__(
         self,
         elastic: AbstractElasticService,
@@ -18,7 +20,7 @@ class FilmService:
         self.elastic = elastic
         self.elastic_index = elastic_index
 
-    async def get_by_id(self, film_id: str, model: FilmBase | Film):
+    async def get_by_id(self, film_id: UUID, model: FilmBase | Film):
         return await self.elastic.get_data_from_elastic(
             film_id, model, self.elastic_index
         )
@@ -38,7 +40,7 @@ class FilmService:
         self,
         paginate_query_params: PaginateQueryParams,
         sort: str,
-        filter_genre: str,
+        filter_genre: UUID,
     ):
         return await self.elastic.get_list_from_elastic(
             elastic_index=self.elastic_index,

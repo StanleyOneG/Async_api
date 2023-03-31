@@ -1,4 +1,5 @@
 from functools import lru_cache
+from uuid import UUID
 
 from fastapi import Depends
 
@@ -21,9 +22,8 @@ class PersonService:
         self.elastic_index = elastic_index
         self.model = model
 
-
     async def get_by_id(
-        self, data_id: str, model: PersonWithFilms | PersonBase
+        self, data_id: UUID, model: PersonWithFilms | PersonBase
     ):
         return await self.elastic.get_data_from_elastic(
             data_id, model, self.elastic_index

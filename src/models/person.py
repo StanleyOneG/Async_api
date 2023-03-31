@@ -6,9 +6,9 @@ from models.simple_model import SimpleModel
 
 
 class PersonBase(BaseModel):
-    uuid: UUID | Any
+    uuid: UUID
     full_name: str
 
 
 class PersonWithFilms(SimpleModel, PersonBase):
-    film_work_ids: list[str | None]
+    film_work_ids: list[UUID | None]

@@ -1,5 +1,6 @@
 """Helper module for elasticsearch data."""
 
+from uuid import UUID
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from abc import ABC, abstractmethod
 from models.film import Film, FilmBase
@@ -14,7 +15,7 @@ class AbstractElasticService(ABC):
     @abstractmethod
     async def get_data_from_elastic(
         self,
-        data_id: str,
+        data_id: UUID,
         model: PersonWithFilms | PersonBase | Genre | Film,
         elastic_index: str,
     ):
@@ -35,13 +36,12 @@ class AbstractElasticService(ABC):
 
 
 class ElasticService(AbstractElasticService):
-
     def __init__(self, elastic: AsyncElasticsearch) -> None:
         self.elastic = elastic
 
     async def get_data_from_elastic(
         self,
-        data_id: str,
+        data_id: UUID,
         model: PersonWithFilms | PersonBase | Genre | Film,
         elastic_index: str,
     ) -> PersonWithFilms | PersonBase | Genre | Film:
@@ -85,8 +85,8 @@ class ElasticService(AbstractElasticService):
         paginate_query_params: PaginateQueryParams,
     ) -> list | list[FilmBase]:
         query_constructor = QueryConstructor(
-            query=query,
-            paginate_query_params=paginate_query_params)
+            query=query, paginate_query_params=paginate_query_params
+        )
         query_body = query_constructor.construct_query('movies')
         try:
             doc = await self.elastic.search(body=query_body, index='movies')
@@ -102,13 +102,11 @@ class ElasticService(AbstractElasticService):
         if not query:
             return None
         query_constructor = QueryConstructor(
-            query=query,
-            paginate_query_params=paginate_query_params)
+            query=query, paginate_query_params=paginate_query_params
+        )
         query_body = query_constructor.construct_query('persons')
         try:
-            doc = await self.elastic.search(
-                body=query_body, index='persons'
-            )
+            doc = await self.elastic.search(body=query_body, index='persons')
         except NotFoundError:
             return []
         return [

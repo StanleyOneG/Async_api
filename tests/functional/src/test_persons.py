@@ -8,6 +8,7 @@ from functional.conftest import persons_uuids, persons_names
 import pytest
 from functional.utils.helpers import fake
 from functional.settings import test_settings
+from functional.conftest import FILM_UUID
 
 logger = logging.getLogger('test_persons')
 
@@ -36,7 +37,7 @@ async def test_get_persons_film(es_write_data, make_film_request, film_data):
     status = response.status
 
     assert status == 200
-    assert body[0].get('uuid') == 'b92ef010-5e4c-4fd0-99d6-41b6456272cd'
+    assert body[0].get('uuid') == FILM_UUID
     assert body[0].get('title') == 'Terminator'
 
 

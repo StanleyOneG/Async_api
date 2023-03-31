@@ -1,6 +1,7 @@
 import asyncio
 from http import HTTPStatus
 from typing import List, Union
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
@@ -23,7 +24,7 @@ router = APIRouter()
 @cache
 async def similar_films(
     request: Request,
-    film_id: str,
+    film_id: UUID,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[FilmBase]:
     film = await film_service.get_by_id(film_id, Film)
@@ -83,7 +84,7 @@ async def films(
         default='imdb_rating', alias='-imdb_rating'
     ),
     paginate_query_params: PaginateQueryParams = Depends(),
-    filter_genre: str = Query(default=None, alias='genre'),
+    filter_genre: UUID = Query(default=None, alias='genre'),
     film_service: FilmService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await film_service.get_films(
@@ -105,7 +106,7 @@ async def films(
 @cache
 async def film_details(
     request: Request,
-    film_id: str,
+    film_id: UUID,
     film_service: FilmService = Depends(get_film_service),
 ) -> Film:
     film = await film_service.get_by_id(film_id, Film)

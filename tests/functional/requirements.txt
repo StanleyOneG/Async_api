@@ -7,3 +7,4 @@ python-dotenv==0.21.1
 backoff==2.2.1
 pydantic==1.10.5
 redis==4.5.1
+orjson==3.8.7

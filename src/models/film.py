@@ -1,4 +1,5 @@
 from typing import List, Union
+from uuid import UUID
 
 from pydantic import BaseModel
 from models.simple_model import SimpleModel
@@ -8,7 +9,7 @@ from .person import PersonBase
 
 
 class FilmBase(BaseModel):
-    uuid: str
+    uuid: UUID
     title: str
     imdb_rating: float | None
 
