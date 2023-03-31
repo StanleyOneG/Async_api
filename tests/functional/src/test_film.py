@@ -25,8 +25,7 @@ async def test_film_by_id(es_write_data, es_movies_data, make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_all_films(es_write_data, es_movies_data, make_get_request):
-    # await es_write_data(es_movies_data, test_settings.es_movies_index)
+async def test_all_films(make_get_request):
     endpoint_url = '/api/v1/films/'
     response = await make_get_request(endpoint_url=endpoint_url)
     length = await response.json()
@@ -37,10 +36,7 @@ async def test_all_films(es_write_data, es_movies_data, make_get_request):
 
 
 @pytest.mark.asyncio
-async def test_all_films_query_params(
-    es_write_data, es_movies_data, make_get_request
-):
-    # await es_write_data(es_movies_data, test_settings.es_movies_index)
+async def test_all_films_query_params(make_get_request):
     endpoint_url = '/api/v1/films?page_size=5'
     response = await make_get_request(endpoint_url=endpoint_url)
     length = await response.json()
@@ -48,10 +44,7 @@ async def test_all_films_query_params(
 
 
 @pytest.mark.asyncio
-async def test_non_existing_film(
-    es_write_data, es_movies_data, make_get_request
-):
-    # await es_write_data(es_movies_data, test_settings.es_movies_index)
+async def test_non_existing_film(make_get_request):
     endpoint_url = '/api/v1/films/i-will-hack-you'
     response = await make_get_request(endpoint_url=endpoint_url)
     assert response.status == 422  # The value is not a valid uuid
