@@ -1,5 +1,6 @@
 import logging
 import random
+from http import HTTPStatus
 
 import pytest
 from functional.settings import test_settings
@@ -20,7 +21,7 @@ async def test_film_by_id(es_write_data, es_movies_data, make_get_request):
     status = response.status
     film_details_response = await response.json()
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert film_details_response.get('title') == random_film.get('title')
     assert len(film_details_response.get('actors')) == len(
         random_film.get('actors')
@@ -35,7 +36,7 @@ async def test_all_films(make_get_request):
     length = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert len(length) == 50
 
 
@@ -55,7 +56,8 @@ async def test_non_existing_film(make_get_request):
 
     response = await make_get_request(endpoint_url=endpoint_url)
 
-    assert response.status == 422  # The value is not a valid uuid
+    # The value is not a valid uuid
+    assert response.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytestmark
@@ -65,5 +67,5 @@ async def test_search_film(make_film_search_request):
     body = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body[0].get('title') == 'The Star'

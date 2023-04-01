@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 
 import pytest
 from functional.conftest import FILM_UUID, persons_names, persons_uuids
@@ -21,7 +22,7 @@ async def test_get_person(
     body = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body.get('uuid') == persons_uuids[3]
     assert body.get('full_name') == persons_names[3]
 
@@ -34,7 +35,7 @@ async def test_get_persons_film(es_write_data, make_film_request, film_data):
     body = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body[0].get('uuid') == FILM_UUID
     assert body[0].get('title') == 'Terminator'
 
@@ -48,5 +49,5 @@ async def test_search_person(make_film_search_request):
     body = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body[0].get('full_name') == 'Ivan Ivanov'

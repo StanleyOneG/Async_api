@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 
 import pytest
 from functional.conftest import genres_names, genres_uuids
@@ -21,7 +22,7 @@ async def test_genres_id(
     body = await response.json()
     status = response.status
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body.get('uuid') == genres_uuids[3]
     assert body.get('name') == genres_names[3]
 
@@ -45,4 +46,4 @@ async def test_genres(
     for genre_name in genres_names:
         assert genre_name in body_names
     assert len(body) == len(genres_data)
-    assert status == 200
+    assert status == HTTPStatus.OK
