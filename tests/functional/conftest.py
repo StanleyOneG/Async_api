@@ -163,7 +163,7 @@ def make_genre_id_request(get_client_session):
 @pytest.fixture
 def make_genres_request(get_client_session):
     async def inner():
-        url = test_settings.service_url + f'/api/v1/genres/'
+        url = test_settings.service_url + '/api/v1/genres/'
         async for session in get_client_session:
             response = await session.get(url)
             return response
@@ -184,7 +184,6 @@ def persons_data():
     es_data.extend(
         [
             {
-                # 'uuid': '56b541ab-4d66-4021-8708-397762bff2d4',
                 'uuid': PERSON_UUID,
                 'full_name': 'Ivan Ivanov',
                 'film_work_ids': [FILM_UUID],
