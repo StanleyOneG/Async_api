@@ -1,7 +1,12 @@
 """Helper module for elasticsearch data."""
 
 from uuid import UUID
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import (
+    AsyncElasticsearch,
+    NotFoundError,
+    ConnectionError,
+    TransportError,
+)
 from abc import ABC, abstractmethod
 from models.film import Film, FilmBase
 
@@ -9,6 +14,7 @@ from models.person import PersonWithFilms, PersonBase
 from models.genre import Genre
 from models.query_constructor import QueryConstructor
 from api.v1.utils import PaginateQueryParams
+import backoff
 
 
 class AbstractElasticService(ABC):
@@ -39,6 +45,7 @@ class ElasticService(AbstractElasticService):
     def __init__(self, elastic: AsyncElasticsearch) -> None:
         self.elastic = elastic
 
+    @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
     async def get_data_from_elastic(
         self,
         data_id: UUID,
@@ -79,6 +86,7 @@ class ElasticService(AbstractElasticService):
             filter_genre=filter_genre,
         )
 
+    @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
     async def search_films(
         self,
         query: str,
@@ -94,6 +102,7 @@ class ElasticService(AbstractElasticService):
             return []
         return [FilmBase(**movie['_source']) for movie in doc['hits']['hits']]
 
+    @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
     async def search_persons(
         self,
         query: str,
@@ -114,6 +123,7 @@ class ElasticService(AbstractElasticService):
             for person in doc['hits']['hits']
         ]
 
+    @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
     async def get_genres_list(self) -> list[Genre] | None:
         try:
             result = await self.elastic.search(
@@ -125,6 +135,7 @@ class ElasticService(AbstractElasticService):
             return None
         return [Genre(**item['_source']) for item in result['hits']['hits']]
 
+    @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
     async def get_films_list(
         self,
         sort,
