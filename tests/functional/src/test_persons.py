@@ -17,6 +17,7 @@ async def test_get_person(
 ):
     await es_write_data(persons_data, test_settings.es_persons_index)
     response = await make_person_get_request()
+
     body = await response.json()
     status = response.status
 
@@ -29,6 +30,7 @@ async def test_get_person(
 async def test_get_persons_film(es_write_data, make_film_request, film_data):
     await es_write_data(film_data, test_settings.es_movies_index)
     response = await make_film_request()
+
     body = await response.json()
     status = response.status
 
@@ -42,6 +44,7 @@ async def test_search_person(make_film_search_request):
     response = await make_film_search_request(
         'Ivan', through_person_endpoint=True
     )
+
     body = await response.json()
     status = response.status
 
