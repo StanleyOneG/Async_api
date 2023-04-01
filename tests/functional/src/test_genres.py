@@ -4,10 +4,13 @@ import pytest
 from functional.conftest import genres_names, genres_uuids
 from functional.settings import test_settings
 
+pytestmark = pytest.mark.asyncio
+
+
 logger = logging.getLogger('test_genres')
 
 
-@pytest.mark.asyncio
+@pytestmark
 async def test_genres_id(
     es_write_data,
     make_genre_id_request,
@@ -23,7 +26,7 @@ async def test_genres_id(
     assert body.get('name') == genres_names[3]
 
 
-@pytest.mark.asyncio
+@pytestmark
 async def test_genres(
     es_write_data,
     make_genres_request,
