@@ -5,7 +5,7 @@ from fastapi import Depends
 
 from db.elastic import get_elastic
 from models.genre import Genre
-from models.elastic_service import AbstractElasticService
+from services.elastic_service import AbstractElasticService
 
 
 class GenreService:

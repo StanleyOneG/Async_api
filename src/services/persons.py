@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import Depends
 
 from db.elastic import get_elastic
-from models.elastic_service import AbstractElasticService
+from services.elastic_service import AbstractElasticService
 from models.person import PersonWithFilms, PersonBase
 from api.v1.utils import PaginateQueryParams
 
