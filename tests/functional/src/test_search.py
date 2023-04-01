@@ -3,7 +3,7 @@ import uuid
 
 import aiohttp
 import pytest
-from tests.functional.settings import test_settings
+from ..settings import test_settings
 
 logger = logging.getLogger('tests')
 
