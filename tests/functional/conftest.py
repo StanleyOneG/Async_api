@@ -32,9 +32,9 @@ class ElasticIndex(BaseModel):
 
 @backoff.on_exception(backoff.expo, (ConnectionError, TransportError))
 async def create_index(
-    es_index: str,
-    es_schema: FilePath,
-    es_client: AsyncElasticsearch,
+        es_index: str,
+        es_schema: FilePath,
+        es_client: AsyncElasticsearch,
 ) -> None:
     """Create Elasticsearch index if it does not exist."""
     with open(es_schema, 'r') as file:
@@ -55,7 +55,7 @@ async def create_index(
 
 
 def get_es_bulk_query(
-    data: list[dict], index: str, id_field: str
+        data: list[dict], index: str, id_field: str
 ) -> list[dict]:
     bulk_query = []
     for row in data:
@@ -263,7 +263,9 @@ def make_film_request(get_client_session):
 @pytest.fixture
 def make_film_search_request(get_client_session):
     async def inner(
-        data_to_search: str, through_person_endpoint: bool = False
+            data_to_search: str,
+            page_size: int,
+            through_person_endpoint: bool = False,
     ):
         params = {
             'query': data_to_search,
@@ -272,6 +274,8 @@ def make_film_search_request(get_client_session):
             url = test_settings.service_url + '/api/v1/persons/search'
         else:
             url = test_settings.service_url + '/api/v1/films/search'
+        if page_size:
+            url += f'?page_size={page_size}'
         async for session in get_client_session:
             response = await session.get(url, params=params)
             return response

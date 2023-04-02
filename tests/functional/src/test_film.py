@@ -28,16 +28,20 @@ async def test_film_by_id(es_write_data, es_movies_data, make_get_request):
     )
 
 
-@pytestmark
-async def test_all_films(make_get_request):
-    endpoint_url = '/api/v1/films/'
+@pytest.mark.parametrize("page_size, page_num, expected_status", [
+    (10, 1, HTTPStatus.OK),
+    (-10, 1, HTTPStatus.UNPROCESSABLE_ENTITY),
+])
+async def test_all_films_pagination(make_get_request, page_size, page_num, expected_status):
+    endpoint_url = f"/api/v1/films/?page_size={page_size}&page_num={page_num}"
     response = await make_get_request(endpoint_url=endpoint_url)
 
-    length = await response.json()
+    body = await response.json()
     status = response.status
 
-    assert status == HTTPStatus.OK
-    assert len(length) == 50
+    assert status == expected_status
+    if expected_status == HTTPStatus.OK:
+        assert len(body) == page_size
 
 
 @pytestmark
@@ -60,12 +64,16 @@ async def test_non_existing_film(make_get_request):
     assert response.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@pytestmark
-async def test_search_film(make_film_search_request):
-    response = await make_film_search_request('The Star')
+@pytest.mark.parametrize("page_size, expected_status", [
+    (10, HTTPStatus.OK),
+    (-10, HTTPStatus.UNPROCESSABLE_ENTITY),
+])
+async def test_search_film(make_film_search_request, page_size, expected_status):
+    response = await make_film_search_request('The Star', page_size)
 
     body = await response.json()
     status = response.status
 
-    assert status == HTTPStatus.OK
-    assert body[0].get('title') == 'The Star'
+    assert status == expected_status
+    if expected_status == HTTPStatus.OK:
+        assert body[0].get('title') == 'The Star'

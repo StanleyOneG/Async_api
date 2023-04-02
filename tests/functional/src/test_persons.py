@@ -40,14 +40,18 @@ async def test_get_persons_film(es_write_data, make_film_request, film_data):
     assert body[0].get('title') == 'Terminator'
 
 
-@pytestmark
-async def test_search_person(make_film_search_request):
+@pytest.mark.parametrize("page_size, expected_status", [
+    (10, HTTPStatus.OK),
+    (-10, HTTPStatus.UNPROCESSABLE_ENTITY),
+])
+async def test_search_person(make_film_search_request, page_size, expected_status):
     response = await make_film_search_request(
-        'Ivan', through_person_endpoint=True
+        'Ivan', page_size, through_person_endpoint=True
     )
 
     body = await response.json()
     status = response.status
 
-    assert status == HTTPStatus.OK
-    assert body[0].get('full_name') == 'Ivan Ivanov'
+    assert status == expected_status
+    if expected_status == HTTPStatus.OK:
+        assert body[0].get('full_name') == 'Ivan Ivanov'
