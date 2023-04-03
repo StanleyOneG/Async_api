@@ -6,9 +6,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from cache.redis_cache import cache
-from services.film import FilmService, get_film_service
-from .schemas import Film, FilmBase
-from .utils import PaginateQueryParams
+from api.v1.schemas import Film, FilmBase
+from api.v1.utils import PaginateQueryParams
+from services.storage_service import get_storage_service
+from services.base_service import MovieService
 
 router = APIRouter()
 
@@ -25,26 +26,31 @@ router = APIRouter()
 async def similar_films(
     request: Request,
     film_id: UUID,
-    film_service: FilmService = Depends(get_film_service),
+    parameters: PaginateQueryParams = Depends(),
+    movie_service: MovieService = Depends(get_storage_service),
 ) -> list[FilmBase]:
-    film = await film_service.get_by_id(film_id, Film)
+    data_from_storage = await movie_service.get_by_id(film_id)
+    film = Film(**data_from_storage)
     if not film:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='film not found',
         )
     genre_ids = [genre.uuid for genre in film.genre]
-    result = await asyncio.gather(
+    list_data_from_storage = await asyncio.gather(
         *[
-            film_service.get_films(
-                sort='imdb_rating', size=10, page=0, filter_genre=genre_id
+            movie_service.search_data(
+                sort='imdb_rating',
+                parameters=parameters,
+                filter=genre_id,
             )
             for genre_id in genre_ids
         ],
     )
     similars = []
-    for group in result:
-        for film in group:
+    for group in list_data_from_storage:
+        group_of_films = [FilmBase(**film) for film in group]
+        for film in group_of_films:
             if film.uuid not in similars:
                 similars.append(film)
     return sorted(similars, key=lambda film: film.imdb_rating, reverse=True)
@@ -63,10 +69,14 @@ async def search_films(
     request: Request,
     query: str = Query(default=None),
     paginate_query_params: PaginateQueryParams = Depends(),
-    film_service: FilmService = Depends(get_film_service),
+    movie_service: MovieService = Depends(get_storage_service),
 ) -> List[FilmBase]:
-    films = await film_service.get_films_search(query, paginate_query_params)
-    return films
+    films = await movie_service.search_data(query, paginate_query_params)
+    if not films:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='films not found'
+        )
+    return [FilmBase(**film) for film in films]
 
 
 @router.get(
@@ -83,16 +93,16 @@ async def films(
     sort: Union[str, None] = Query(
         default='imdb_rating', alias='-imdb_rating'
     ),
-    paginate_query_params: PaginateQueryParams = Depends(),
+    parameters: PaginateQueryParams = Depends(),
     filter_genre: UUID = Query(default=None, alias='genre'),
-    film_service: FilmService = Depends(get_film_service),
+    movie_service: MovieService = Depends(get_storage_service),
 ) -> List[FilmBase]:
-    films = await film_service.get_films(
-        paginate_query_params,
-        sort,
-        filter_genre,
+    films = await movie_service.search_data(
+        parameters=parameters,
+        sort=sort,
+        filter=filter_genre,
     )
-    return films
+    return [FilmBase(**film) for film in films]
 
 
 @router.get(
@@ -107,21 +117,22 @@ async def films(
 async def film_details(
     request: Request,
     film_id: UUID,
-    film_service: FilmService = Depends(get_film_service),
+    movie_service: MovieService = Depends(get_storage_service),
 ) -> Film:
-    film = await film_service.get_by_id(film_id, Film)
+    film = await movie_service.get_by_id(id=film_id)
     if not film:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='film not found'
         )
+    return Film(**film)
 
-    return Film(
-        uuid=film.uuid,
-        title=film.title,
-        description=film.description,
-        imdb_rating=film.imdb_rating,
-        actors=film.actors,
-        writers=film.writers,
-        directors=film.directors,
-        genre=film.genre,
-    )
+    # return Film(
+    #     uuid=film.get('uuid'),
+    #     title=film.get('title'),
+    #     description=film.get('description'),
+    #     imdb_rating=film.get('imdb_rating'),
+    #     actors=film.get('actors'),
+    #     writers=film.get('writers'),
+    #     directors=film.get('directors'),
+    #     genre=film.get('genre'),
+    # )

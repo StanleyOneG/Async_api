@@ -131,7 +131,7 @@ services:
         condition: service_started
     container_name: elastic_persons_loader
 
-  api:
+  server:
     build:
       context: ./src
       dockerfile: Dockerfile
@@ -144,7 +144,7 @@ services:
         condition: service_healthy
     expose:
       - 8000
-    container_name: api
+    container_name: server
 
   nginx:
     image: nginx:1.23.3
@@ -155,7 +155,7 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-      api:
+      server:
         condition: service_started
     ports:
       - 80:80
