@@ -26,13 +26,14 @@ class ElasticPersonsService(MovieService):
 
     async def search_data(
         self,
-        parameters: PaginateQueryParams = None,
+        parameters: PaginateQueryParams,
         query: str = None,
         sort: str = None,
         filter: UUID = None,
     ) -> list:
         query_constructor = QueryConstructor(
             query=query,
+            sort=sort,
             paginate_query_params=parameters,
         )
         query_body = query_constructor.construct_query(self.elastic_index)

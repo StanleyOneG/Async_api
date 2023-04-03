@@ -4,9 +4,9 @@ from api.v1.utils import PaginateQueryParams
 
 
 class QueryConstructor(BaseModel):
-    paginate_query_params: PaginateQueryParams = Field(default=None)
-    query: str = Field(default=None)
-    sort: str = Field(default=None)
+    paginate_query_params: PaginateQueryParams
+    query: str | None = Field(default=None)
+    sort: str | None = Field(default=None)
     filter_genre: UUID = Field(default=None)
 
     class Config:

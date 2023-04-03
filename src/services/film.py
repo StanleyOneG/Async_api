@@ -26,7 +26,7 @@ class ElasticFilmService(MovieService):
 
     async def search_data(
         self,
-        parameters: PaginateQueryParams = None,
+        parameters: PaginateQueryParams,
         query: str = None,
         sort: str = None,
         filter: UUID = None,
@@ -50,9 +50,9 @@ class ElasticFilmService(MovieService):
 
     async def get_films(
         self,
+        parameters: PaginateQueryParams,
         filter_genre: UUID,
         sort: str = None,
-        parameters: PaginateQueryParams = None,
     ):
         query_constructor = QueryConstructor(
             paginate_query_params=parameters,
