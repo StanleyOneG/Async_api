@@ -1,4 +1,5 @@
 from elasticsearch import AsyncElasticsearch
+
 from services.elastic_service import ElasticSearvice
 
 storage: AsyncElasticsearch = None

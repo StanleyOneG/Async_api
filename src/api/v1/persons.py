@@ -5,14 +5,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
+from api.v1.schemas import Person
+from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
 from models.film import Film, FilmBase
 from models.person import PersonWithFilms
 from services.base_service import MovieService
 from services.storage_service import get_film_service, get_persons_service
-
-from .schemas import Person
-from .utils import PaginateQueryParams
 
 router = APIRouter()
 
@@ -48,7 +47,6 @@ async def get_person_related_films(
         film = await task
         films.append(film)
 
-    print(f'FROM PERSON DETAIL RELATED FILMS ----------- {films}')
     if model == FilmBase:
         return films
 
@@ -59,7 +57,6 @@ async def get_person_related_films(
     ]:
         roles = []
         for actor in actors:
-            print(f'FROM ACTORS -------- {actor}')
             if str(actor.uuid) == person.get('uuid'):
                 roles.append('actor')
         for writer in writers:

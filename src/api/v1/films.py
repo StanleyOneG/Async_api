@@ -3,13 +3,13 @@ from http import HTTPStatus
 from typing import List, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from cache.redis_cache import cache
 from api.v1.schemas import Film, FilmBase
 from api.v1.utils import PaginateQueryParams
-from services.storage_service import get_film_service
+from cache.redis_cache import cache
 from services.base_service import MovieService
+from services.storage_service import get_film_service
 
 router = APIRouter()
 
@@ -58,7 +58,6 @@ async def similar_films(
     return sorted(results, key=lambda film: film.imdb_rating, reverse=True)
 
 
-
 @router.get(
     '/search',
     summary="Поиск кинопроизведений",
@@ -74,7 +73,10 @@ async def search_films(
     paginate_query_params: PaginateQueryParams = Depends(),
     movie_service: MovieService = Depends(get_film_service),
 ) -> List[FilmBase]:
-    films = await movie_service.search_data(query, paginate_query_params)
+    films = await movie_service.search_data(
+        query=query,
+        parameters=paginate_query_params,
+    )
     if not films:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='films not found'

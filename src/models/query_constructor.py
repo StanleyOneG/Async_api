@@ -4,10 +4,10 @@ from api.v1.utils import PaginateQueryParams
 
 
 class QueryConstructor(BaseModel):
-    paginate_query_params: PaginateQueryParams | None = Field(default=None)
-    query: str | None = Field(default=None)
-    sort: str | None = Field(default=None)
-    filter_genre: UUID | None = Field(default=None)
+    paginate_query_params: PaginateQueryParams = Field(default=None)
+    query: str = Field(default=None)
+    sort: str = Field(default=None)
+    filter_genre: UUID = Field(default=None)
 
     class Config:
         arbitrary_types_allowed = True
@@ -29,12 +29,13 @@ class QueryConstructor(BaseModel):
         if self.paginate_query_params.page_size:
             query_body["size"] = self.paginate_query_params.page_size
 
-        find_query = {
-            'persons': self.get_persons_query,
-            'movies': self.get_films_query,
-        }
+        if self.query:
+            find_query = {
+                'persons': self.get_persons_query,
+                'movies': self.get_films_query,
+            }
 
-        query_body['query'] = find_query[elastic_index]()
+            query_body['query'] = find_query[elastic_index]()
         return query_body
 
     def construct_films_list_query(self):
@@ -52,12 +53,8 @@ class QueryConstructor(BaseModel):
             query_body['query'] = {
                 "query": {
                     "constant_score": {
-                        "filter": {
-                            "term": {
-                                "genre.uuid": self.filter_genre
-                            }
-                        }
+                        "filter": {"term": {"genre.uuid": self.filter_genre}}
                     }
                 }
-            } 
+            }
         return query_body

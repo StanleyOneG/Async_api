@@ -3,13 +3,11 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from models.film import Film
 from api.v1.utils import PaginateQueryParams
 from db.data_storage_interface import DataStorageInterface
-from services.base_service import MovieService
 from db.storage import get_storage
 from models.query_constructor import QueryConstructor
-from services.elastic_service import ElasticSearvice
+from services.base_service import MovieService
 
 
 class ElasticFilmService(MovieService):
@@ -30,15 +28,17 @@ class ElasticFilmService(MovieService):
         self,
         parameters: PaginateQueryParams = None,
         query: str = None,
-        **kwargs,
+        sort: str = None,
+        filter: UUID = None,
     ) -> list:
-        if 'sort' and 'filter' in kwargs:
+        if filter is not None:
             return await self.get_films(
                 parameters=parameters,
-                sort=kwargs['sort'],
-                filter_genre=kwargs['filter'],
+                sort=sort,
+                filter_genre=filter,
             )
         query_constructor = QueryConstructor(
+            sort=sort,
             query=query,
             paginate_query_params=parameters,
         )
@@ -50,8 +50,8 @@ class ElasticFilmService(MovieService):
 
     async def get_films(
         self,
-        sort: str,
         filter_genre: UUID,
+        sort: str = None,
         parameters: PaginateQueryParams = None,
     ):
         query_constructor = QueryConstructor(
