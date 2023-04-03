@@ -13,12 +13,11 @@ from services.elastic_service import ElasticSearvice
 
 
 class ElasticFilmService(MovieService):
-    """Represent a films collection on API side."""
+    """Represent a films collection from storage."""
 
     def __init__(self, storage: DataStorageInterface) -> None:
         self.storage = storage
         self.elastic_index = 'movies'
-        self.elastic_model = Film
 
     async def get_by_id(self, id: UUID):
         film = await self.storage.get_data_by_id(
@@ -61,7 +60,6 @@ class ElasticFilmService(MovieService):
             filter_genre=filter_genre,
         )
         query_body = query_constructor.construct_films_list_query()
-        print(f'FROM SEARCH DATA ------------ {query_body}')
         return await self.storage.search_data(
             body=query_body,
             index=self.elastic_index,

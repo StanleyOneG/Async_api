@@ -3,10 +3,6 @@
 
 # from fastapi import Depends
 
-# from db.elastic import get_elastic
-# from models.genre import Genre
-# from services.elastic_service import AbstractElasticService
-
 
 # class GenreService:
 #     def __init__(

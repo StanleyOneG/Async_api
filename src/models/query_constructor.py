@@ -50,17 +50,14 @@ class QueryConstructor(BaseModel):
                 query_body['from'] = self.paginate_query_params.page_number
         if self.filter_genre:
             query_body['query'] = {
-                "nested": {
-                    "path": "genre",
-                    "query": {
-                        "constant_score": {
-                            "filter": {
-                                "term": {
-                                    "genre.uuid": self.filter_genre
-                                }
+                "query": {
+                    "constant_score": {
+                        "filter": {
+                            "term": {
+                                "genre.uuid": self.filter_genre
                             }
                         }
-                    },
+                    }
                 }
-            }
+            } 
         return query_body

@@ -37,7 +37,6 @@ async def similar_films(
             detail='film not found',
         )
     genre_ids = [str(genre.uuid) for genre in film.genre]
-    print(f'FROM SIMILAR GENRES ----------- {genre_ids}')
     list_data_from_storage = await asyncio.gather(
         *[
             movie_service.search_data(
@@ -48,13 +47,6 @@ async def similar_films(
             for genre_id in genre_ids
         ],
     )
-    print(
-        f'LIST OF DATA BY SIMILAR FILMS ---------------- {list_data_from_storage}'
-    )
-    # result = []
-    # for group in list_data_from_storage:
-    #     films = [FilmBase(**film) for film in group]
-    #     result.append(films)
     similar_ids = []
     similars = []
     for group in list_data_from_storage:
@@ -62,13 +54,9 @@ async def similar_films(
             if film.get('uuid') not in similar_ids:
                 similar_ids.append(film.get('uuid'))
                 similars.append(film)
-    # for film in similars:
-    #     for genre in film.get('genre'):
-    #         if genre.get('uuid') not in genre_ids:
-    #             similars.remove(film)
     results = [FilmBase(**film) for film in similars]
-    return results
-    # return sorted(results, key=lambda film: film.imdb_rating, reverse=True)
+    return sorted(results, key=lambda film: film.imdb_rating, reverse=True)
+
 
 
 @router.get(
