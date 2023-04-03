@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from cache.redis_cache import cache
 from api.v1.schemas import Film, FilmBase
 from api.v1.utils import PaginateQueryParams
-from services.storage_service import get_storage_service
+from services.storage_service import get_film_service
 from services.base_service import MovieService
 
 router = APIRouter()
@@ -27,7 +27,7 @@ async def similar_films(
     request: Request,
     film_id: UUID,
     parameters: PaginateQueryParams = Depends(),
-    movie_service: MovieService = Depends(get_storage_service),
+    movie_service: MovieService = Depends(get_film_service),
 ) -> list[FilmBase]:
     data_from_storage = await movie_service.get_by_id(film_id)
     film = Film(**data_from_storage)
@@ -36,7 +36,8 @@ async def similar_films(
             status_code=HTTPStatus.NOT_FOUND,
             detail='film not found',
         )
-    genre_ids = [genre.uuid for genre in film.genre]
+    genre_ids = [str(genre.uuid) for genre in film.genre]
+    print(f'FROM SIMILAR GENRES ----------- {genre_ids}')
     list_data_from_storage = await asyncio.gather(
         *[
             movie_service.search_data(
@@ -47,13 +48,27 @@ async def similar_films(
             for genre_id in genre_ids
         ],
     )
+    print(
+        f'LIST OF DATA BY SIMILAR FILMS ---------------- {list_data_from_storage}'
+    )
+    # result = []
+    # for group in list_data_from_storage:
+    #     films = [FilmBase(**film) for film in group]
+    #     result.append(films)
+    similar_ids = []
     similars = []
     for group in list_data_from_storage:
-        group_of_films = [FilmBase(**film) for film in group]
-        for film in group_of_films:
-            if film.uuid not in similars:
+        for film in group:
+            if film.get('uuid') not in similar_ids:
+                similar_ids.append(film.get('uuid'))
                 similars.append(film)
-    return sorted(similars, key=lambda film: film.imdb_rating, reverse=True)
+    # for film in similars:
+    #     for genre in film.get('genre'):
+    #         if genre.get('uuid') not in genre_ids:
+    #             similars.remove(film)
+    results = [FilmBase(**film) for film in similars]
+    return results
+    # return sorted(results, key=lambda film: film.imdb_rating, reverse=True)
 
 
 @router.get(
@@ -69,7 +84,7 @@ async def search_films(
     request: Request,
     query: str = Query(default=None),
     paginate_query_params: PaginateQueryParams = Depends(),
-    movie_service: MovieService = Depends(get_storage_service),
+    movie_service: MovieService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await movie_service.search_data(query, paginate_query_params)
     if not films:
@@ -95,7 +110,7 @@ async def films(
     ),
     parameters: PaginateQueryParams = Depends(),
     filter_genre: UUID = Query(default=None, alias='genre'),
-    movie_service: MovieService = Depends(get_storage_service),
+    movie_service: MovieService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await movie_service.search_data(
         parameters=parameters,
@@ -117,7 +132,7 @@ async def films(
 async def film_details(
     request: Request,
     film_id: UUID,
-    movie_service: MovieService = Depends(get_storage_service),
+    movie_service: MovieService = Depends(get_film_service),
 ) -> Film:
     film = await movie_service.get_by_id(id=film_id)
     if not film:
@@ -125,14 +140,3 @@ async def film_details(
             status_code=HTTPStatus.NOT_FOUND, detail='film not found'
         )
     return Film(**film)
-
-    # return Film(
-    #     uuid=film.get('uuid'),
-    #     title=film.get('title'),
-    #     description=film.get('description'),
-    #     imdb_rating=film.get('imdb_rating'),
-    #     actors=film.get('actors'),
-    #     writers=film.get('writers'),
-    #     directors=film.get('directors'),
-    #     genre=film.get('genre'),
-    # )

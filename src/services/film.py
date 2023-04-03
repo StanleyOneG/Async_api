@@ -29,11 +29,10 @@ class ElasticFilmService(MovieService):
 
     async def search_data(
         self,
-        parameters: PaginateQueryParams,
+        parameters: PaginateQueryParams = None,
         query: str = None,
         **kwargs,
     ) -> list:
-        print(f'FROM CALL SEARCH DATA ------------- {self.storage}')
         if 'sort' and 'filter' in kwargs:
             return await self.get_films(
                 parameters=parameters,
@@ -52,9 +51,9 @@ class ElasticFilmService(MovieService):
 
     async def get_films(
         self,
-        parameters: PaginateQueryParams,
         sort: str,
         filter_genre: UUID,
+        parameters: PaginateQueryParams = None,
     ):
         query_constructor = QueryConstructor(
             paginate_query_params=parameters,
@@ -62,6 +61,7 @@ class ElasticFilmService(MovieService):
             filter_genre=filter_genre,
         )
         query_body = query_constructor.construct_films_list_query()
+        print(f'FROM SEARCH DATA ------------ {query_body}')
         return await self.storage.search_data(
             body=query_body,
             index=self.elastic_index,
@@ -72,5 +72,4 @@ class ElasticFilmService(MovieService):
 def get_elastic_film_service(
     storage: DataStorageInterface = Depends(get_storage),
 ):
-    print(f'CALL ELASTICFILMSERVICE ------------------ {storage}')
     return ElasticFilmService(storage)

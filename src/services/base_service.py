@@ -12,7 +12,7 @@ class MovieService(ABC):
     @abstractmethod
     async def search_data(
         self,
-        parameters: PaginateQueryParams,
+        parameters: PaginateQueryParams = None,
         query: str = None,
         sort: str = None,
         filter: UUID = None,

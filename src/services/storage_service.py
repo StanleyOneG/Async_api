@@ -43,11 +43,7 @@ from fastapi import Depends
 #         pass
 
 
-def get_storage_service(
-    service: ElasticFilmService = Depends(get_elastic_film_service),
+def get_film_service(
+    film_service: ElasticFilmService = Depends(get_elastic_film_service),
 ):
-    # if service_type == 'film':
-    print(f'STEP GET EasticFilmService ------------ {service}')
-    # else:
-    #     raise ValueError(f"Invalid service type: {service_type}")
-    return service
+    return film_service
