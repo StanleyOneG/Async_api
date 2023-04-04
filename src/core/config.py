@@ -23,3 +23,4 @@ ELASTIC_USERNAME = configs.ELASTICSEARCH.USERNAME
 ELASTIC_PASSWORD = configs.ELASTICSEARCH.PASSWORD
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_SERVICE_NAME = 'redis'

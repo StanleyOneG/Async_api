@@ -3,10 +3,9 @@ import logging
 import uuid
 from functools import wraps
 
-from redis.asyncio import Redis
-
 from core.config import REDIS_CACHE_EXPIRE as EXPIRE
-from db.redis import get_redis
+from .abstract_cache import AbstractBaseCache
+from services.cache import get_cache_service
 
 
 class UUIDEncoder(json.JSONEncoder):
@@ -20,7 +19,7 @@ def cache(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         request = kwargs['request']
-        redis: Redis = get_redis()
+        redis: AbstractBaseCache = get_cache_service()
         key = str(request.url.path)
         if request.query_params:
             key = '?'.join([key, str(request.query_params)])
