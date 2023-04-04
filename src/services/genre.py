@@ -3,41 +3,46 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from db.elastic import get_elastic
-from models.genre import Genre
-from services.elastic_service import AbstractElasticService
+from api.v1.utils import PaginateQueryParams
+from db.data_storage_interface import DataStorageInterface
+from db.storage import get_storage
+from models.query_constructor import QueryConstructor
+from services.base_service import MovieService
 
 
-class GenreService:
-    def __init__(
-        self,
-        elastic: AbstractElasticService,
-        elastic_index: str,
-        model: Genre,
-    ):
-        self.elastic = elastic
-        self.elastic_index = elastic_index
-        self.model = model
+class ElasticGenresService(MovieService):
+    """Represents a genres collection from storage."""
 
-    async def get_by_id(self, data_id: UUID, model: Genre):
-        return await self.elastic.get_data_from_elastic(
-            data_id, model, self.elastic_index
+    def __init__(self, storage: DataStorageInterface):
+        self.storage = storage
+        self.elastic_index = 'genres'
+
+    async def get_by_id(self, id: UUID) -> dict:
+        genre = await self.storage.get_data_by_id(
+            index=self.elastic_index,
+            id=id,
         )
+        return genre
 
-    async def get_list(
+    async def search_data(
         self,
-    ):
-        return await self.elastic.get_list_from_elastic(
-            elastic_index=self.elastic_index
+        parameters: PaginateQueryParams = None,
+        query: str = None,
+        sort: str = None,
+        filter: UUID = None,
+    ) -> list:
+        query_constructor = QueryConstructor(
+            paginate_query_params=parameters,
+        )
+        query_body = query_constructor.construct_query(self.elastic_index)
+        return await self.storage.search_data(
+            query_body=query_body,
+            index=self.elastic_index,
         )
 
 
 @lru_cache()
-def get_genre_service(
-    elastic: AbstractElasticService = Depends(get_elastic),
-) -> GenreService:
-    return GenreService(
-        elastic=elastic,
-        model=Genre,
-        elastic_index='genres',
-    )
+def get_elastic_genres_service(
+    storage: DataStorageInterface = Depends(get_storage),
+):
+    return ElasticGenresService(storage)

@@ -4,36 +4,43 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
 
+from api.v1.schemas import Person
+from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
+from models.film import Film, FilmBase
 from models.person import PersonWithFilms
-from services.film import Film, FilmBase, FilmService, get_film_service
-from services.persons import PersonService, get_person_service
-from .schemas import Person
-from .utils import PaginateQueryParams
+from services.base_service import MovieService
+from services.storage_service import get_film_service, get_persons_service
 
 router = APIRouter()
 
 
 async def get_film_by_id(
     film_work_id: UUID,
-    film_service: FilmService,
+    film_service: MovieService,
     model: Film | FilmBase,
-):
-    film = await film_service.get_by_id(film_work_id, model)
+) -> Film | FilmBase:
+    film_dict_from_storage = await film_service.get_by_id(id=film_work_id)
+    film = model(**film_dict_from_storage)
     return film
 
 
 async def get_person_related_films(
-    film_service: FilmService,
+    film_service: MovieService,
     person: PersonWithFilms,
     model: Film | FilmBase,
 ) -> list:
     films = []
     tasks = []
-    for item in person.film_work_ids:
-        task = asyncio.create_task(get_film_by_id(item, film_service, model))
+    for item in person.get('film_work_ids'):
+        task = asyncio.create_task(
+            get_film_by_id(
+                film_work_id=item,
+                film_service=film_service,
+                model=model,
+            )
+        )
         tasks.append(task)
 
     for task in asyncio.as_completed(tasks):
@@ -50,13 +57,13 @@ async def get_person_related_films(
     ]:
         roles = []
         for actor in actors:
-            if actor.uuid == person.uuid:
+            if str(actor.uuid) == person.get('uuid'):
                 roles.append('actor')
         for writer in writers:
-            if writer.uuid == person.uuid:
+            if str(writer.uuid) == person.get('uuid'):
                 roles.append('writer')
         for director in directors:
-            if director.uuid == person.uuid:
+            if str(director.uuid) == person.get('uuid'):
                 roles.append('director')
         related_movies.append(dict(uuid=film_work_id, roles=roles))
     return related_movies
@@ -75,13 +82,12 @@ async def search_persons(
     request: Request,
     query: str = Query(default=None),
     paginate_query_params: PaginateQueryParams = Depends(),
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
+    person_service: MovieService = Depends(get_persons_service),
+    film_service: MovieService = Depends(get_film_service),
 ):
-    persons = await person_service.get_persons_search(
-        query,
-        paginate_query_params,
-        # person_service.elastic_index,
+    persons = await person_service.search_data(
+        query=query,
+        parameters=paginate_query_params,
     )
     if not persons:
         raise HTTPException(
@@ -92,10 +98,12 @@ async def search_persons(
     for person in persons:
         result.append(
             Person(
-                uuid=person.uuid,
-                full_name=person.full_name,
+                uuid=person.get('uuid'),
+                full_name=person.get('full_name'),
                 films=await get_person_related_films(
-                    film_service, person, Film
+                    film_service=film_service,
+                    person=person,
+                    model=Film,
                 ),
             )
         )
@@ -114,15 +122,16 @@ async def search_persons(
 async def films_by_person(
     request: Request,
     person_id: UUID,
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
+    person_service: MovieService = Depends(get_persons_service),
+    film_service: MovieService = Depends(get_film_service),
 ):
-    model = person_service.model
-    person = await person_service.get_by_id(person_id, model)
+    person = await person_service.get_by_id(id=person_id)
     if not person:
         return []
     related_films = await get_person_related_films(
-        film_service, person, FilmBase
+        film_service=film_service,
+        person=person,
+        model=FilmBase,
     )
     return related_films
 
@@ -139,16 +148,21 @@ async def films_by_person(
 async def person_detail(
     request: Request,
     person_id: UUID,
-    person_service: PersonService = Depends(get_person_service),
-    film_service: FilmService = Depends(get_film_service),
-):
-    model = person_service.model
-    person = await person_service.get_by_id(person_id, model)
+    persons_service: MovieService = Depends(get_persons_service),
+    film_service: MovieService = Depends(get_film_service),
+) -> Person:
+    person = await persons_service.get_by_id(id=person_id)
     if not person:
-        return []
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='person not found'
+        )
 
     return Person(
-        uuid=person.uuid,
-        full_name=person.full_name,
-        films=await get_person_related_films(film_service, person, Film),
+        uuid=person.get('uuid'),
+        full_name=person.get('full_name'),
+        films=await get_person_related_films(
+            film_service=film_service,
+            person=person,
+            model=Film,
+        ),
     )

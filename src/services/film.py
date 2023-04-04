@@ -3,55 +3,71 @@ from uuid import UUID
 
 from fastapi import Depends
 
-from db.elastic import get_elastic
-from models.film import Film, FilmBase
-from services.elastic_service import AbstractElasticService
 from api.v1.utils import PaginateQueryParams
+from db.data_storage_interface import DataStorageInterface
+from db.storage import get_storage
+from models.query_constructor import QueryConstructor
+from services.base_service import MovieService
 
 
-class FilmService:
-    """Represent a films collection on API side."""
+class ElasticFilmService(MovieService):
+    """Represent a films collection from storage."""
 
-    def __init__(
-        self,
-        elastic: AbstractElasticService,
-        elastic_index: str,
-    ) -> None:
-        self.elastic = elastic
-        self.elastic_index = elastic_index
+    def __init__(self, storage: DataStorageInterface) -> None:
+        self.storage = storage
+        self.elastic_index = 'movies'
 
-    async def get_by_id(self, film_id: UUID, model: FilmBase | Film):
-        return await self.elastic.get_data_from_elastic(
-            film_id, model, self.elastic_index
+    async def get_by_id(self, id: UUID):
+        film = await self.storage.get_data_by_id(
+            index=self.elastic_index,
+            id=id,
         )
+        return film
 
-    async def get_films_search(
+    async def search_data(
         self,
-        query: str,
-        paginate_query_params: PaginateQueryParams,
-    ) -> list[FilmBase]:
-        return await self.elastic.search_data_in_elastic(
-            query,
-            paginate_query_params,
-            self.elastic_index,
+        parameters: PaginateQueryParams,
+        query: str = None,
+        sort: str = None,
+        filter: UUID = None,
+    ) -> list:
+        if filter is not None:
+            return await self.get_films(
+                parameters=parameters,
+                sort=sort,
+                filter_genre=filter,
+            )
+        query_constructor = QueryConstructor(
+            sort=sort,
+            query=query,
+            paginate_query_params=parameters,
+        )
+        query_body = query_constructor.construct_query(self.elastic_index)
+        return await self.storage.search_data(
+            query_body=query_body,
+            index=self.elastic_index,
         )
 
     async def get_films(
         self,
-        paginate_query_params: PaginateQueryParams,
-        sort: str,
+        parameters: PaginateQueryParams,
         filter_genre: UUID,
+        sort: str = None,
     ):
-        return await self.elastic.get_list_from_elastic(
-            elastic_index=self.elastic_index,
-            paginate_query_params=paginate_query_params,
+        query_constructor = QueryConstructor(
+            paginate_query_params=parameters,
             sort=sort,
             filter_genre=filter_genre,
+        )
+        query_body = query_constructor.construct_films_list_query()
+        return await self.storage.search_data(
+            body=query_body,
+            index=self.elastic_index,
         )
 
 
 @lru_cache()
-def get_film_service(
-    elastic: AbstractElasticService = Depends(get_elastic),
-) -> FilmService:
-    return FilmService(elastic=elastic, elastic_index='movies')
+def get_elastic_film_service(
+    storage: DataStorageInterface = Depends(get_storage),
+):
+    return ElasticFilmService(storage)

@@ -13,7 +13,7 @@ class ObjectModel(BaseModel):
 
 class FilmBase(ObjectModel):
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
 
 
 class Film(FilmBase):

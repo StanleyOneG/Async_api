@@ -4,13 +4,13 @@ from api.v1.utils import PaginateQueryParams
 
 
 class QueryConstructor(BaseModel):
-    paginate_query_params: PaginateQueryParams | None
+    paginate_query_params: PaginateQueryParams
     query: str | None = Field(default=None)
     sort: str | None = Field(default=None)
-    filter_genre: UUID | None = Field(default=None)
+    filter_genre: UUID = Field(default=None)
 
     class Config:
-            arbitrary_types_allowed = True
+        arbitrary_types_allowed = True
 
     def get_persons_query(self):
         return {
@@ -29,12 +29,13 @@ class QueryConstructor(BaseModel):
         if self.paginate_query_params.page_size:
             query_body["size"] = self.paginate_query_params.page_size
 
-        find_query = {
-            'persons': self.get_persons_query,
-            'movies': self.get_films_query,
-        }
+        if self.query:
+            find_query = {
+                'persons': self.get_persons_query,
+                'movies': self.get_films_query,
+            }
 
-        query_body['query'] = find_query[elastic_index]()
+            query_body['query'] = find_query[elastic_index]()
         return query_body
 
     def construct_films_list_query(self):
@@ -43,20 +44,16 @@ class QueryConstructor(BaseModel):
             query_body['query']["match_all"] = {}
         if self.sort:
             query_body['sort'] = {"imdb_rating": {"order": "desc"}}
-        if self.paginate_query_params.page_size:
-            query_body['size'] = self.paginate_query_params.page_size
-        if self.paginate_query_params.page_number:
-            query_body['from'] = self.paginate_query_params.page_number
+        if self.paginate_query_params:
+            if self.paginate_query_params.page_size:
+                query_body['size'] = self.paginate_query_params.page_size
+            if self.paginate_query_params.page_number:
+                query_body['from'] = self.paginate_query_params.page_number
         if self.filter_genre:
             query_body['query'] = {
-                "nested": {
-                    "path": "genre",
-                    "query": {
-                        "bool": {
-                            "should": [
-                                {"match": {"genre.uuid": self.filter_genre}}
-                            ]
-                        }
+                "query": {
+                    "constant_score": {
+                        "filter": {"term": {"genre.uuid": self.filter_genre}}
                     }
                 }
             }

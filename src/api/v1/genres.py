@@ -3,9 +3,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from api.v1.schemas import Genre
+from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
-from services.genre import GenreService, get_genre_service
-from .schemas import Genre
+from services.base_service import MovieService
+from services.storage_service import get_genres_service
 
 router = APIRouter()
 
@@ -21,16 +23,16 @@ router = APIRouter()
 @cache
 async def genre_list(
     request: Request,
-    genre_service: GenreService = Depends(get_genre_service),
+    parameters: PaginateQueryParams = Depends(),
+    genre_service: MovieService = Depends(get_genres_service),
 ):
-    elastic_index = genre_service.elastic_index
-    genres = await genre_service.get_list()
+    genres = await genre_service.search_data(parameters=parameters)
     if not genres:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='genres not found',
         )
-    return [Genre(uuid=genre.uuid, name=genre.name) for genre in genres]
+    return [Genre(**genre) for genre in genres]
 
 
 @router.get(
@@ -45,14 +47,13 @@ async def genre_list(
 async def genre_details(
     request: Request,
     genre_id: UUID,
-    genre_service: GenreService = Depends(get_genre_service),
+    genre_service: MovieService = Depends(get_genres_service),
 ) -> Genre:
-    model = genre_service.model
-    genre = await genre_service.get_by_id(genre_id, model)
+    genre = await genre_service.get_by_id(id=genre_id)
     if not genre:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='genre not found',
         )
 
-    return Genre(uuid=genre.uuid, name=genre.name)
+    return Genre(**genre)
