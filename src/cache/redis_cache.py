@@ -21,7 +21,9 @@ def cache(func):
     async def wrapper(*args, **kwargs):
         request = kwargs['request']
         redis: Redis = get_redis()
-        key = request.url.path
+        key = str(request.url.path)
+        if request.query_params:
+            key = '?'.join([key, str(request.query_params)])
         value = await redis.get(key)
         if value:
             logging.info('CACHE HIT')
