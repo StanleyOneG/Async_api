@@ -7,22 +7,16 @@ from api.v1.utils import PaginateQueryParams
 from db.data_storage_interface import DataStorageInterface
 from db.storage import get_storage
 from models.query_constructor import QueryConstructor
+from services.base_elastic_services import BaseElasticService
 from services.base_service import MovieService
 
 
-class ElasticFilmService(MovieService):
+class ElasticFilmService(BaseElasticService, MovieService):
     """Represent a films collection from storage."""
 
     def __init__(self, storage: DataStorageInterface) -> None:
         self.storage = storage
         self.elastic_index = 'movies'
-
-    async def get_by_id(self, id: UUID):
-        film = await self.storage.get_data_by_id(
-            index=self.elastic_index,
-            id=id,
-        )
-        return film
 
     async def search_data(
         self,
