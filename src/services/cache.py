@@ -3,10 +3,11 @@ from core.config import CACHE_SERVICE_NAME
 from cache.abstract_cache import AbstractBaseCache
 from db.redis import get_redis
 
+
 @lru_cache
 def get_cache_service():
     if CACHE_SERVICE_NAME == 'redis':
-         return RedisCache()
+        return RedisCache()
 
 
 class RedisCache(AbstractBaseCache):

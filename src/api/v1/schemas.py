@@ -24,7 +24,7 @@ class Film(FilmBase):
     directors: Union[List[PersonBase], PersonBase, None]
 
 
-class Genre(ObjectModel):
+class GenreSchema(ObjectModel):
     name: str
 
 

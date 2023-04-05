@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from api.v1.schemas import Genre
+from api.v1.schemas import GenreSchema
 from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
 from services.base_service import MovieService
@@ -18,7 +18,7 @@ router = APIRouter()
     description="Жанры",
     response_description="Список жанров",
     tags=["Жанры"],
-    response_model=list[Genre],
+    response_model=list[GenreSchema],
 )
 @cache
 async def genre_list(
@@ -32,7 +32,7 @@ async def genre_list(
             status_code=HTTPStatus.NOT_FOUND,
             detail='genres not found',
         )
-    return [Genre(**genre) for genre in genres]
+    return [GenreSchema(**genre) for genre in genres]
 
 
 @router.get(
@@ -41,14 +41,14 @@ async def genre_list(
     description="Жанр по ID",
     response_description="Жанр по ID",
     tags=["Жанры"],
-    response_model=Genre,
+    response_model=GenreSchema,
 )
 @cache
 async def genre_details(
     request: Request,
     genre_id: UUID,
     genre_service: MovieService = Depends(get_genres_service),
-) -> Genre:
+) -> GenreSchema:
     genre = await genre_service.get_by_id(id=genre_id)
     if not genre:
         raise HTTPException(
@@ -56,4 +56,4 @@ async def genre_details(
             detail='genre not found',
         )
 
-    return Genre(**genre)
+    return GenreSchema(**genre)

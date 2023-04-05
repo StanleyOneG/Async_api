@@ -13,7 +13,7 @@ from elasticsearch import (
 from db.data_storage_interface import DataStorageInterface
 
 
-class ElasticSearvice(DataStorageInterface):
+class ElasticService(DataStorageInterface):
     def __init__(self, storage_client: AsyncElasticsearch):
         self._es = storage_client
 
