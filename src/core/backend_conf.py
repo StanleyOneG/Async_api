@@ -61,7 +61,7 @@ class RedisSettings(BaseSettings):
 
 
 class JwtSettings(BaseSettings):
-    """Configuration for Redis."""
+    """Configuration for jwt"""
 
     PUBLIC_KEY: str
 
