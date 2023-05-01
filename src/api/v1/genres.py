@@ -8,6 +8,7 @@ from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
 from services.base_service import MovieService
 from services.storage_service import get_genres_service
+from auth.jwt import check_auth
 
 router = APIRouter()
 
@@ -20,6 +21,7 @@ router = APIRouter()
     tags=["Жанры"],
     response_model=list[GenreSchema],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def genre_list(
     request: Request,
@@ -43,6 +45,7 @@ async def genre_list(
     tags=["Жанры"],
     response_model=GenreSchema,
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def genre_details(
     request: Request,

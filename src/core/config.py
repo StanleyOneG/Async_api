@@ -23,4 +23,6 @@ ELASTIC_PORT = configs.ELASTICSEARCH.PORT
 ELASTIC_USERNAME = configs.ELASTICSEARCH.USERNAME
 ELASTIC_PASSWORD = configs.ELASTICSEARCH.PASSWORD
 
+JWT_PUBLIC_KEY = configs.JWT.PUBLIC_KEY
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

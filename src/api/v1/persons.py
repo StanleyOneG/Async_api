@@ -12,6 +12,7 @@ from models.film import Film, FilmBase
 from models.person import PersonWithFilms
 from services.base_service import MovieService
 from services.storage_service import get_film_service, get_persons_service
+from auth.jwt import check_auth
 
 router = APIRouter()
 
@@ -77,6 +78,7 @@ async def get_person_related_films(
     tags=["Полнотекстовый поиск"],
     response_model=List[Person],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def search_persons(
     request: Request,
@@ -118,6 +120,7 @@ async def search_persons(
     tags=["Участники"],
     response_model=List[FilmBase],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def films_by_person(
     request: Request,
@@ -144,6 +147,7 @@ async def films_by_person(
     tags=["Участники"],
     response_model=Person,
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def person_detail(
     request: Request,
