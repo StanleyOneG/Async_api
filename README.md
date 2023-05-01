@@ -31,6 +31,8 @@ PROJECT_DESCRIPTION="Информация о фильмах, жанрах и л�
 PROJECT_VERSION="1.0.0"
 PROJECT_CACHE_SERVICE_NAME="redis"
 
+JWT_PUBLIC_KEY=
+
 ```
 **Запуск приложения**
 
