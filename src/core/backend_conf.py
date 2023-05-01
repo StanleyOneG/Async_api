@@ -34,7 +34,7 @@ class ProjectSettings(BaseSettings):
 class ElasticSettings(BaseSettings):
     """Configuration for Elasticsearch."""
 
-    HOST: str 
+    HOST: str
     PORT: int
     USERNAME: str
     PASSWORD: str
@@ -60,9 +60,22 @@ class RedisSettings(BaseSettings):
         alias_generator = to_lower
 
 
+class JwtSettings(BaseSettings):
+    """Configuration for Redis."""
+
+    PUBLIC_KEY: str
+
+    class Config:
+        """Configuration class for correct env variables insertion."""
+
+        env_prefix = 'JWT_'
+        alias_generator = to_lower
+
+
 class Settings(BaseSettings):
     """Helper class for configuration access."""
 
     ELASTICSEARCH = ElasticSettings()
     REDIS = RedisSettings()
     PROJECT = ProjectSettings()
+    JWT = JwtSettings()

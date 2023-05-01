@@ -11,6 +11,6 @@ reup:
 	sudo docker-compose build
 	sudo docker-compose up -d
 reup_api:
-	sudo docker-compose down -v api
-	sudo docker-compose build api
-	sudo docker-compose up api
+	sudo docker-compose down -v server
+	sudo docker-compose build server
+	sudo docker-compose up -d server

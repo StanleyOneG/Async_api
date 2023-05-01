@@ -10,7 +10,10 @@ from api.v1.utils import PaginateQueryParams
 from cache.redis_cache import cache
 from services.base_service import MovieService
 from services.storage_service import get_film_service
+from auth.jwt import check_auth
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -22,12 +25,13 @@ router = APIRouter()
     tags=["Похожие фильмы"],
     response_model=List[FilmBase],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def similar_films(
-    request: Request,
-    film_id: UUID,
-    parameters: PaginateQueryParams = Depends(),
-    movie_service: MovieService = Depends(get_film_service),
+        request: Request,
+        film_id: UUID,
+        parameters: PaginateQueryParams = Depends(),
+        movie_service: MovieService = Depends(get_film_service),
 ) -> list[FilmBase]:
     data_from_storage = await movie_service.get_by_id(film_id)
     film = Film(**data_from_storage)
@@ -66,12 +70,13 @@ async def similar_films(
     tags=["Полнотекстовый поиск"],
     response_model=List[FilmBase],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def search_films(
-    request: Request,
-    query: str = Query(default=None),
-    paginate_query_params: PaginateQueryParams = Depends(),
-    movie_service: MovieService = Depends(get_film_service),
+        request: Request,
+        query: str = Query(default=None),
+        paginate_query_params: PaginateQueryParams = Depends(),
+        movie_service: MovieService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await movie_service.search_data(
         query=query,
@@ -92,15 +97,16 @@ async def search_films(
     tags=["Кинопроизведения"],
     response_model=List[FilmBase],
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def films(
-    request: Request,
-    sort: Union[str, None] = Query(
-        default='imdb_rating', alias='-imdb_rating'
-    ),
-    parameters: PaginateQueryParams = Depends(),
-    filter_genre: UUID = Query(default=None, alias='genre'),
-    movie_service: MovieService = Depends(get_film_service),
+        request: Request,
+        sort: Union[str, None] = Query(
+            default='imdb_rating', alias='-imdb_rating'
+        ),
+        parameters: PaginateQueryParams = Depends(),
+        filter_genre: UUID = Query(default=None, alias='genre'),
+        movie_service: MovieService = Depends(get_film_service),
 ) -> List[FilmBase]:
     films = await movie_service.search_data(
         parameters=parameters,
@@ -118,11 +124,12 @@ async def films(
     tags=["Кинопроизведение"],
     response_model=Film,
 )
+@check_auth(endpoint_permission='subscriber')
 @cache
 async def film_details(
-    request: Request,
-    film_id: UUID,
-    movie_service: MovieService = Depends(get_film_service),
+        request: Request,
+        film_id: UUID,
+        movie_service: MovieService = Depends(get_film_service),
 ) -> Film:
     film = await movie_service.get_by_id(id=film_id)
     if not film:
